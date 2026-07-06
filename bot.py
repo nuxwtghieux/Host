@@ -7,10 +7,21 @@ import urllib3
 import warnings
 import logging
 import re
-from datetime import datetime
+from datetime import datetime, timezone, timedelta
 from flask import Flask
 import threading
 import os
+
+# ===== SET MÚI GIỜ VIỆT NAM =====
+os.environ['TZ'] = 'Asia/Ho_Chi_Minh'
+try:
+    time.tzset()
+except:
+    pass
+
+def now_vn():
+    """Trả về thời gian hiện tại theo múi giờ Việt Nam (GMT+7)"""
+    return datetime.now(timezone(timedelta(hours=7)))
 
 # ===== TẮT LOG =====
 urllib3.disable_warnings()
@@ -83,7 +94,7 @@ async def load_ticket_counter_from_dm(bot):
         print(f"❌ Lỗi đọc DM: {e}")
 
 async def send_ticket_log(bot, ticket_number, creator_id, closer_mention, service_type, reason="Không"):
-    now = datetime.now()
+    now = now_vn()
     log_user = bot.get_user(LOG_USER_ID) or await bot.fetch_user(LOG_USER_ID)
     
     embed_log = discord.Embed(title=f"# Ticket số {ticket_number}", color=0x3498db)
@@ -110,7 +121,7 @@ class PriceMoneyModal(discord.ui.Modal, title="Check giá tiền"):
         
         bank = round_bank(int(money * 0.12))
         card = round_card(bank)
-        now = datetime.now()
+        now = now_vn()
         
         embed = discord.Embed(title="💰 GIÁ CÀY TIỀN HIỆN TẠI 💰", color=0x3498db)
         embed.description = (
@@ -138,7 +149,7 @@ class PriceSlayModal(discord.ui.Modal, title="Check giá slay"):
         
         bank = round_bank(int(slay * 25))
         card = round_card(bank) if bank > 8000 else 0
-        now = datetime.now()
+        now = now_vn()
         
         card_text = f"{card:,} VND" if card > 0 else "Chỉ nhận card từ 400 SLAY trở lên!"
         
@@ -169,7 +180,7 @@ class VndToMoneyModal(discord.ui.Modal, title="VND → Tiền cần cày"):
         money = int(vnd / 0.12)
         bank = round_bank(vnd)
         card = round_card(bank)
-        now = datetime.now()
+        now = now_vn()
         
         embed = discord.Embed(title="💵 SỐ TIỀN CÀY BẠN NHẬN ĐƯỢC 💵", color=0xe67e22)
         embed.description = (
@@ -198,7 +209,7 @@ class VndToSlayModal(discord.ui.Modal, title="VND → Slay"):
         slay = int(vnd / 25)
         bank = round_bank(vnd)
         card = round_card(bank) if bank > 8000 else 0
-        now = datetime.now()
+        now = now_vn()
         
         card_text = f"{card:,} VND" if card > 0 else "Chỉ nhận card từ 400 SLAY trở lên!"
         
@@ -236,7 +247,7 @@ class TicketCreateModal(discord.ui.Modal, title="Tạo đơn"):
             ticket_counter = 1
         
         ticket_number = f"{ticket_counter:03d}"
-        now = datetime.now()
+        now = now_vn()
         safe_display_name = user.display_name.replace(" ", "-")[:20]
         channel_name = f"đơn-{ticket_number}-{safe_display_name}-{now.strftime('%H-%M')}"
         
@@ -447,7 +458,7 @@ class Bot(discord.Client):
                            "💡 **Nút phụ:** '💵 VND → Tiền cày' và '💳 VND → Slay' để tính ngược từ VND.",
                 color=0x3498db
             )
-            embed_check.set_footer(text=datetime.now().strftime('%H:%M:%S | %d-%m-%Y'))
+            embed_check.set_footer(text=now_vn().strftime('%H:%M:%S | %d-%m-%Y'))
             await ch_check.send(embed=embed_check, view=PriceView())
         
         ch_ticket = self.get_channel(TICKET_CHANNEL_ID)
@@ -483,7 +494,7 @@ class Bot(discord.Client):
             p = best['players']
             code = best['job_id'][-5:]
             color = 0x00ff00 if p <= 3 else 0xffaa00
-            now = datetime.now()
+            now = now_vn()
             
             print(f"✅ Gửi server: #{code} | {p}/{best['max']} người")
             
@@ -511,7 +522,7 @@ class Bot(discord.Client):
         if not channel:
             return
         
-        now = datetime.now()
+        now = now_vn()
         guild = member.guild
         admin_mention = f"<@&{ADMIN_ROLE_ID}>"
         owner_mention = f"<@{LOG_USER_ID}>"
@@ -541,7 +552,7 @@ class Bot(discord.Client):
         if not channel:
             return
         
-        now = datetime.now()
+        now = now_vn()
         guild = member.guild
         
         embed = discord.Embed(
