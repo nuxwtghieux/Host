@@ -387,6 +387,25 @@ def scan_divaz():
     
     return found
 
+# ===== SLASH COMMANDS =====
+@discord.app_commands.command(name="tattimmap", description="⏸️ Tạm dừng quét server Divaz")
+async def tattimmap_cmd(interaction: discord.Interaction):
+    global scan_active
+    if not is_admin(interaction.user):
+        return await interaction.response.send_message("❌ Chỉ admin mới dùng được lệnh này!", ephemeral=True)
+    
+    scan_active = False
+    await interaction.response.send_message("⏸️ Đã **tắt** quét map Divaz!", ephemeral=True)
+
+@discord.app_commands.command(name="battimmap", description="▶️ Bật lại quét server Divaz")
+async def battimmap_cmd(interaction: discord.Interaction):
+    global scan_active
+    if not is_admin(interaction.user):
+        return await interaction.response.send_message("❌ Chỉ admin mới dùng được lệnh này!", ephemeral=True)
+    
+    scan_active = True
+    await interaction.response.send_message("▶️ Đã **bật** quét map Divaz!", ephemeral=True)
+
 # ===== BOT CHÍNH =====
 class Bot(discord.Client):
     def __init__(self):
@@ -446,7 +465,7 @@ class Bot(discord.Client):
                 view=TicketView()
             )
     
-    @tasks.loop(seconds=150)  # ĐÚNG 150 GIÂY
+    @tasks.loop(seconds=150)
     async def scan_loop(self):
         global scan_active
         
@@ -536,31 +555,6 @@ class Bot(discord.Client):
         embed.set_image(url=GOOBBYE_URL)
         embed.set_footer(text=now.strftime('%H:%M:%S | %d-%m-%Y'))
         await channel.send(embed=embed)
-
-# ===== SLASH COMMANDS =====
-@discord.app_commands.Command(
-    name="tattimmap",
-    description="⏸️ Tạm dừng quét server Divaz"
-)
-async def tattimmap_cmd(interaction: discord.Interaction):
-    global scan_active
-    if not is_admin(interaction.user):
-        return await interaction.response.send_message("❌ Chỉ admin mới dùng được lệnh này!", ephemeral=True)
-    
-    scan_active = False
-    await interaction.response.send_message("⏸️ Đã **tắt** quét map Divaz!", ephemeral=True)
-
-@discord.app_commands.Command(
-    name="battimmap",
-    description="▶️ Bật lại quét server Divaz"
-)
-async def battimmap_cmd(interaction: discord.Interaction):
-    global scan_active
-    if not is_admin(interaction.user):
-        return await interaction.response.send_message("❌ Chỉ admin mới dùng được lệnh này!", ephemeral=True)
-    
-    scan_active = True
-    await interaction.response.send_message("▶️ Đã **bật** quét map Divaz!", ephemeral=True)
 
 # ===== CHẠY =====
 if __name__ == '__main__':
