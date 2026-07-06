@@ -5,6 +5,7 @@ from datetime import datetime
 import re
 from flask import Flask
 import threading
+import os
 
 # ===== FLASK WEB SERVER =====
 app = Flask(__name__)
@@ -17,7 +18,7 @@ def run_web():
     app.run(host='0.0.0.0', port=8080)
 # ============================
 
-TOKEN = "MTUyMzYzMDgyOTQ2MzQwODc1MA.GMnCyA.x3EQIbUCg3Mv5VDyKZPowZn6MWgLUe8SuuAcqs"
+TOKEN = os.getenv('DISCORD_TOKEN')
 
 GUILD_ID = 1509102064784117821
 
