@@ -1,5 +1,6 @@
 import discord
 from discord.ext import tasks
+from discord import app_commands
 import requests
 import time
 import urllib3
@@ -30,6 +31,7 @@ def run_web():
 # ============================
 
 TOKEN = os.getenv('DISCORD_TOKEN')
+
 GUILD_ID = 1509102064784117821
 CHECK_CHANNEL_ID = 1523606725318676532
 TICKET_CHANNEL_ID = 1523604635816820856
@@ -50,6 +52,7 @@ THUMBNAIL_URL = "https://huyhieu08.online/uploads/20260707_054705_91412ed7.png"
 IMAGE_URL = "https://i.postimg.cc/V6CFtBL0/no-Filter.webp"
 
 ticket_counter = 0
+scan_active = True
 
 # ===== CÁC HÀM TÍNH TOÁN =====
 def round_card(bank):
@@ -333,12 +336,9 @@ class TicketView(discord.ui.View):
 class ServerView(discord.ui.View):
     def __init__(self, server):
         super().__init__(timeout=None)
-        p = server['players']
-        color = discord.ButtonStyle.green if p <= 3 else discord.ButtonStyle.blurple
-        code = server['job_id'][-5:]
         self.add_item(discord.ui.Button(
-            style=color,
-            label=f"🎯 #{code} | {p}/{server['max']} | {server['ping']}ms",
+            style=discord.ButtonStyle.green if server['players'] <= 3 else discord.ButtonStyle.blurple,
+            label="JOIN",
             url=f"https://nuxwtghieux.github.io/Snipe/?jobid={server['job_id']}"
         ))
 
@@ -395,10 +395,12 @@ class Bot(discord.Client):
         intents.message_content = True
         intents.members = True
         super().__init__(intents=intents)
-        self.tree = discord.app_commands.CommandTree(self)
+        self.tree = app_commands.CommandTree(self)
     
     async def setup_hook(self):
         guild = discord.Object(id=GUILD_ID)
+        self.tree.add_command(tattimmap_cmd)
+        self.tree.add_command(battimmap_cmd)
         await self.tree.sync(guild=guild)
         self.add_view(PriceView())
         self.add_view(TicketView())
@@ -444,8 +446,13 @@ class Bot(discord.Client):
                 view=TicketView()
             )
     
-    @tasks.loop(seconds=120)
+    @tasks.loop(seconds=150)  # ĐÚNG 150 GIÂY
     async def scan_loop(self):
+        global scan_active
+        
+        if not scan_active:
+            return
+        
         channel = self.get_channel(SCAN_CHANNEL_ID)
         if not channel:
             return
@@ -457,13 +464,15 @@ class Bot(discord.Client):
             p = best['players']
             code = best['job_id'][-5:]
             color = 0x00ff00 if p <= 3 else 0xffaa00
+            now = datetime.now()
             
             print(f"✅ Gửi server: #{code} | {p}/{best['max']} người")
             
             embed = discord.Embed(
                 title="🎮 DIVAZ - SERVER TRỐNG",
                 description=f"**Mã Server:** `#{code}`",
-                color=color
+                color=color,
+                timestamp=now
             )
             status = f"🟢 {p}/{best['max']}" if p <= 3 else f"🟡 {p}/{best['max']}"
             embed.add_field(name="👥 **NGƯỜI CHƠI**", value=status, inline=True)
@@ -472,7 +481,7 @@ class Bot(discord.Client):
             
             embed.set_thumbnail(url=THUMBNAIL_URL)
             embed.set_image(url=IMAGE_URL)
-            embed.set_footer(text="BotByPawPaw")
+            embed.set_footer(text=f"BotByPawPaw • {now.strftime('%H:%M:%S | %d/%m/%Y')}")
             
             await channel.send(embed=embed, view=ServerView(best))
         else:
@@ -499,7 +508,7 @@ class Bot(discord.Client):
             "━━━━━━━━━━━━━━━━━━━━━━\n"
             "# 🐳┆PAWPAW'S STORE:\n"
             f"ㆍChào mừng cậu đã đến với {guild.name}!\n"
-            f"ㆍCậu là thành viên thứ **{guild.member_count}** của {guild.name}\n"
+            f"ㆍCậu là thành viên thứ {guild.member_count} của {guild.name}\n"
             f"ㆍNếu thắc mắc, liên hệ {admin_mention} và {owner_mention}.\n\n"
             "✨✨GOOD DAYY✨✨"
         )
@@ -517,7 +526,7 @@ class Bot(discord.Client):
         guild = member.guild
         
         embed = discord.Embed(
-            title="😞 GOOBYE",
+            title="😢 TẠM BIỆT",
             description=f"**{member.mention}** đã rời server!\n\n"
                        f"👋 Tạm biệt **{member.display_name}**\n"
                        f"💔 Server còn **{guild.member_count}** thành viên",
@@ -527,6 +536,31 @@ class Bot(discord.Client):
         embed.set_image(url=GOOBBYE_URL)
         embed.set_footer(text=now.strftime('%H:%M:%S | %d-%m-%Y'))
         await channel.send(embed=embed)
+
+# ===== SLASH COMMANDS =====
+@discord.app_commands.Command(
+    name="tattimmap",
+    description="⏸️ Tạm dừng quét server Divaz"
+)
+async def tattimmap_cmd(interaction: discord.Interaction):
+    global scan_active
+    if not is_admin(interaction.user):
+        return await interaction.response.send_message("❌ Chỉ admin mới dùng được lệnh này!", ephemeral=True)
+    
+    scan_active = False
+    await interaction.response.send_message("⏸️ Đã **tắt** quét map Divaz!", ephemeral=True)
+
+@discord.app_commands.Command(
+    name="battimmap",
+    description="▶️ Bật lại quét server Divaz"
+)
+async def battimmap_cmd(interaction: discord.Interaction):
+    global scan_active
+    if not is_admin(interaction.user):
+        return await interaction.response.send_message("❌ Chỉ admin mới dùng được lệnh này!", ephemeral=True)
+    
+    scan_active = True
+    await interaction.response.send_message("▶️ Đã **bật** quét map Divaz!", ephemeral=True)
 
 # ===== CHẠY =====
 if __name__ == '__main__':
