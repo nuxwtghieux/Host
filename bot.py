@@ -96,7 +96,7 @@ def nap_emoji_tu_may_chu(bot):
         elif emoji.name == "blink2":
             EMOJI_BLINK2 = str(emoji)
         elif emoji.name == "blinkk":
-            EMOJI_BLINK2 = str(emoji)
+            EMOJI_BLINKK = str(emoji)
         elif emoji.name == "tron":
             EMOJI_TRON = str(emoji)
         elif emoji.name == "xu":
