@@ -76,13 +76,22 @@ cac_map_da_gui = set()
 
 # ===== CÁC HÀM TIỆN ÍCH =====
 def lam_tron_the(ngan_hang):
-    """Tính tiền thẻ: luôn lớn hơn bank ít nhất 10k, làm tròn về số chẵn 10k"""
-    the_tho = ngan_hang * 1.15
-    the_tron = int(round(the_tho / 10000) * 10000)
+    """
+    Tính tiền thẻ: bank * 1.15 + 10k, làm tròn về số chẵn 10k
+    - Nếu số hàng nghìn >= 5: làm tròn lên (25k -> 30k)
+    - Nếu số hàng nghìn < 5: làm tròn xuống (22k -> 20k)
+    """
+    the_tho = ngan_hang * 1.15 + 10000
     
-    chenh_lech_toi_thieu = 10000
-    while the_tron < ngan_hang + chenh_lech_toi_thieu:
-        the_tron += 10000
+    # Lấy phần dư khi chia cho 10000
+    phan_du = the_tho % 10000
+    
+    if phan_du >= 5000:
+        # Làm tròn lên
+        the_tron = ((the_tho // 10000) + 1) * 10000
+    else:
+        # Làm tròn xuống
+        the_tron = (the_tho // 10000) * 10000
     
     return the_tron
 
@@ -697,7 +706,7 @@ class Bot(discord.Client):
                     break
             
             if tin_nhan_cu:
-                # Để nguyên embed cũ, không xóa không tạo mới
+                # Để nguyên embed cũ
                 id_tin_nhan_phan_ung = tin_nhan_cu.id
                 try:
                     await tin_nhan_cu.add_reaction(BIEU_TUONG_PHAN_UNG)
@@ -705,7 +714,7 @@ class Bot(discord.Client):
                     pass
                 print(f"✅ Giữ nguyên embed phản ứng cũ: {tin_nhan_cu.id}")
             else:
-                # Chỉ tạo mới nếu chưa có
+                # Tạo mới
                 async for tin in kenh_phan_ung.history(limit=50):
                     if tin.author == self.user:
                         await tin.delete()
@@ -724,7 +733,7 @@ class Bot(discord.Client):
                 id_tin_nhan_phan_ung = tin_nhan_moi.id
                 print(f"✅ Đã tạo tin nhắn phản ứng mới: {tin_nhan_moi.id}")
     
-    @tasks.loop(seconds=180)  # 3 PHÚT = 180 GIÂY
+    @tasks.loop(seconds=180)
     async def vong_lap_quet(self):
         global dang_quet, cac_map_da_gui
         
@@ -738,7 +747,6 @@ class Bot(discord.Client):
         cac_may = quet_divaz()
         
         if cac_may:
-            # Reset nếu tất cả map đều đã gửi
             if len(cac_map_da_gui) > 50:
                 cac_map_da_gui.clear()
             
@@ -748,7 +756,6 @@ class Bot(discord.Client):
             mau_sac = 0x00ff00 if so_nguoi <= 3 else 0xffaa00
             bay_gio = gio_vn()
             
-            # Đánh dấu map đã gửi
             cac_map_da_gui.add(tot_nhat['id_may'])
             
             print(f"✅ Gửi server MỚI: #{ma} | {so_nguoi}/{tot_nhat['toi_da']} người")
@@ -766,7 +773,7 @@ class Bot(discord.Client):
             
             bang.set_thumbnail(url=ANH_NHO)
             bang.set_image(url=ANH_LON)
-            bang.set_footer(text=f"BotByPawPaw • {bay_gio.strftime('%H:%M:%S | %d/%m/%Y')} • MapID: {tot_nhat['id_may']}")
+            bang.set_footer(text=f"BotByPawPaw • {bay_gio.strftime('%H:%M:%S | %d/%m/%Y')}")
             
             await kenh.send(embed=bang, view=GiaoDienServer(tot_nhat))
         else:
