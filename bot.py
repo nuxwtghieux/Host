@@ -93,14 +93,18 @@ def nap_emoji_tu_may_chu(bot):
             EMOJI_CANH1 = str(emoji)
         elif emoji.name == "canh2":
             EMOJI_CANH2 = str(emoji)
+        elif emoji.name == "blink2":
+            EMOJI_BLINK2 = str(emoji)
+        elif emoji.name == "blinkk":
+            EMOJI_BLINK2 = str(emoji)
         elif emoji.name == "tron":
             EMOJI_TRON = str(emoji)
-        elif emoji.name == "coin":
+        elif emoji.name == "xu":
             EMOJI_COIN = str(emoji)
         elif emoji.name == "baibien":
             BIEU_TUONG_PHAN_UNG = str(emoji)
     
-    print(f"✅ Đã nạp emoji: canh1={EMOJI_CANH1}, canh2={EMOJI_CANH2}, tron={EMOJI_TRON}, coin={EMOJI_COIN}, baibien={BIEU_TUONG_PHAN_UNG}")
+    print(f"✅ Đã nạp emoji: canh1={EMOJI_CANH1}, canh2={EMOJI_CANH2}, blink={EMOJI_BLINK2}, tron={EMOJI_TRON}, coin={EMOJI_COIN}, baibien={BIEU_TUONG_PHAN_UNG}")
 
 # ===== CÁC HÀM TIỆN ÍCH =====
 def lam_tron_the(ngan_hang):
@@ -827,17 +831,17 @@ class Bot(discord.Client):
             f"# {EMOJI_CANH1} CHÀO MỪNG THÀNH VIÊN MỚI {EMOJI_CANH2}\n"
             "━━━━━━━━━━━━━━━━━━━━━━\n"
             f"# {EMOJI_TRON}┆THÔNG TIN CỦA BẠN:\n"
-            f"ㆍ*Tên*: {thanh_vien.mention}\n"
-            f"ㆍ*Người dùng*: {thanh_vien.name}\n"
-            f"ㆍ*ID*: {thanh_vien.id}\n"
-            f"ㆍ*Ngày tạo*: {thanh_vien.created_at.strftime('%d-%m-%Y')}\n"
+            f"ㆍ{EMOJI_BLINKK} *Tên*: {thanh_vien.mention}\n"
+            f"ㆍ{EMOJI_BLINKK} *Người dùng*: {thanh_vien.name}\n"
+            f"ㆍ{EMOJI_BLINKK} *ID*: {thanh_vien.id}\n"
+            f"ㆍ{EMOJI_BLINKK} *Ngày tạo*: {thanh_vien.created_at.strftime('%d-%m-%Y')}\n"
             "━━━━━━━━━━━━━━━━━━━━━━\n"
             f"# {EMOJI_TRON}┆CỬA HÀNG PAWPAW:\n"
-            f"ㆍChào mừng bạn đã đến với {may_chu.name}!\n"
-            f"ㆍBạn là thành viên thứ {may_chu.member_count} của {may_chu.name}\n"
-            f"ㆍNếu thắc mắc và cần hỗ trợ, hãy liên hệ {nhac_quan_tri} và {nhac_dieu_hanh}.\n"
-            f"ㆍNếu muốn tham gia các kênh trò chuyện, hãy vào kênh <#{ID_KENH_PHAN_UNG}> để nhận vai trò.\n\n"
-            "✨✨CHÚC BẠN MỘT NGÀY TỐT LÀNH✨✨"
+            f"{EMOJI_BLINKK}ㆍChào mừng bạn đã đến với {may_chu.name}!\n"
+            f"{EMOJI_BLINKK}ㆍBạn là thành viên thứ {may_chu.member_count} của {may_chu.name}\n"
+            f"{EMOJI_BLINKK}ㆍNếu thắc mắc và cần hỗ trợ, hãy liên hệ {nhac_quan_tri} và {nhac_dieu_hanh}.\n"
+            f"{EMOJI_BLINKK}ㆍNếu muốn tham gia các kênh trò chuyện, hãy vào kênh <#{ID_KENH_PHAN_UNG}> để nhận vai trò.\n\n"
+            "{EMOJI_BLINK2}{EMOJI_BLINK2}CHÚC BẠN MỘT NGÀY TỐT LÀNH{EMOJI_BLINK2}{EMOJI_BLINK2}"
         )
         bang.set_thumbnail(url=thanh_vien.display_avatar.url)
         bang.set_image(url=ANH_CHAO_MUNG)
