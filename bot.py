@@ -104,7 +104,7 @@ def nap_emoji_tu_may_chu(bot):
         elif emoji.name == "baibien":
             BIEU_TUONG_PHAN_UNG = str(emoji)
     
-    print(f"✅ Đã nạp emoji: canh1={EMOJI_CANH1}, canh2={EMOJI_CANH2}, blink={EMOJI_BLINK2}, tron={EMOJI_TRON}, coin={EMOJI_COIN}, baibien={BIEU_TUONG_PHAN_UNG}")
+    print(f"✅ Đã nạp emoji: canh1={EMOJI_CANH1}, canh2={EMOJI_CANH2}, blink2={EMOJI_BLINK2}, blinkk={EMOJI_BLINKK}, tron={EMOJI_TRON}, coin={EMOJI_COIN}, baibien={BIEU_TUONG_PHAN_UNG}")
 
 # ===== CÁC HÀM TIỆN ÍCH =====
 def lam_tron_the(ngan_hang):
