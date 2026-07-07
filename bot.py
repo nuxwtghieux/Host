@@ -69,55 +69,20 @@ ANH_TAM_BIET = "https://i.imgur.com/LL8i48j.gif"
 ANH_NHO = "https://huyhieu08.online/uploads/20260707_054705_91412ed7.png"
 ANH_LON = "https://i.postimg.cc/V6CFtBL0/no-Filter.webp"
 
-# LƯU TRỮ
-TEP_DEM_DON = "so_don.txt"
-TEP_ID_PHAN_UNG = "id_phan_ung.txt"
-
 dem_don = 0
 dang_quet = True
 id_tin_nhan_phan_ung = None
-
-# ===== LƯU/ĐỌC FILE =====
-def luu_dem_don(so):
-    try:
-        with open(TEP_DEM_DON, "w") as tep:
-            tep.write(str(so))
-    except:
-        pass
-
-def doc_dem_don_tu_tep():
-    try:
-        with open(TEP_DEM_DON, "r") as tep:
-            return int(tep.read().strip())
-    except:
-        return 0
-
-def luu_id_phan_ung(id_tin_nhan):
-    try:
-        with open(TEP_ID_PHAN_UNG, "w") as tep:
-            tep.write(str(id_tin_nhan))
-    except:
-        pass
-
-def doc_id_phan_ung_tu_tep():
-    try:
-        with open(TEP_ID_PHAN_UNG, "r") as tep:
-            return int(tep.read().strip())
-    except:
-        return None
+cac_map_da_gui = set()
 
 # ===== CÁC HÀM TIỆN ÍCH =====
 def lam_tron_the(ngan_hang):
-    """Tính tiền thẻ: luôn lớn hơn tiền bank ít nhất 10,000 VND"""
+    """Tính tiền thẻ: luôn lớn hơn bank ít nhất 10k, làm tròn về số chẵn 10k"""
     the_tho = ngan_hang * 1.15
     the_tron = int(round(the_tho / 10000) * 10000)
     
-    # Đảm bảo thẻ luôn lớn hơn bank ít nhất 10k
-    if the_tron <= ngan_hang + 10000:
-        the_tron = ngan_hang + 10000
-        the_tron = int(round(the_tron / 10000) * 10000)
-        if the_tron <= ngan_hang + 10000:
-            the_tron += 10000
+    chenh_lech_toi_thieu = 10000
+    while the_tron < ngan_hang + chenh_lech_toi_thieu:
+        the_tron += 10000
     
     return the_tron
 
@@ -143,27 +108,33 @@ def dinh_dang_gia(gia_goc, gia_giam, la_vip):
         return f"**{gia_giam:,}** VND ~~{gia_goc:,} VND~~ (VIP)"
     return f"**{gia_goc:,}** VND"
 
-async def nap_dem_don_tu_tin_nhan(bot):
-    global dem_don
+async def nap_du_lieu_tu_dm(bot):
+    """Khôi phục số đơn và danh sách map đã gửi từ DM log"""
+    global dem_don, cac_map_da_gui, id_tin_nhan_phan_ung
+    
     try:
         nguoi_nhan = bot.get_user(ID_NGUOI_NHAN_LOG) or await bot.fetch_user(ID_NGUOI_NHAN_LOG)
-        async for tin_nhan in nguoi_nhan.history(limit=50):
+        async for tin_nhan in nguoi_nhan.history(limit=100):
             if tin_nhan.author == bot.user and tin_nhan.embeds:
                 bang = tin_nhan.embeds[0]
+                
+                # Đọc số đơn
                 if bang.title and "Đơn số" in bang.title:
                     ket_qua = re.search(r'Đơn số (\d+)', bang.title)
                     if ket_qua:
                         don_cuoi = int(ket_qua.group(1))
                         if don_cuoi > dem_don:
                             dem_don = don_cuoi
-        
-        don_tep = doc_dem_don_tu_tep()
-        if don_tep > dem_don:
-            dem_don = don_tep
-            
-        print(f"✅ Số đơn hiện tại: {dem_don}")
+                
+                # Đọc map đã gửi
+                if bang.footer and "MapID:" in (bang.footer.text or ""):
+                    map_id = bang.footer.text.split("MapID:")[-1].strip()
+                    if map_id:
+                        cac_map_da_gui.add(map_id)
+                        
+        print(f"✅ Khôi phục: {dem_don} đơn, {len(cac_map_da_gui)} map đã gửi")
     except Exception as e:
-        print(f"❌ Lỗi đọc tin nhắn: {e}")
+        print(f"❌ Lỗi đọc DM: {e}")
 
 async def gui_nhat_ky_don(bot, so_don, id_nguoi_tao, nguoi_dong, loai_dich_vu, ly_do="Không"):
     bay_gio = gio_vn()
@@ -365,10 +336,8 @@ class BangTaoDon(discord.ui.Modal, title="Tạo đơn"):
         
         danh_muc = may_chu.get_channel(ID_DANH_MUC_DON)
         dem_don += 1
-        luu_dem_don(dem_don)
         if dem_don > 999:
             dem_don = 1
-            luu_dem_don(dem_don)
         
         so_don = f"{dem_don:03d}"
         bay_gio = gio_vn()
@@ -436,7 +405,6 @@ class XacNhanDongDon(discord.ui.View):
         await tuong_tac.response.send_message("❌ Đã hủy đóng đơn!", ephemeral=True)
 
 class BinhChonHoanThanh(discord.ui.View):
-    """Cần Admin/Mod + Người tạo đơn cùng xác nhận"""
     def __init__(self, kenh, so_don, id_nguoi_tao, loai_dich_vu):
         super().__init__(timeout=120)
         self.kenh = kenh
@@ -615,7 +583,7 @@ def quet_divaz():
                 for may in cac_may:
                     so_nguoi = may.get('playing', 0)
                     
-                    if so_nguoi < 5:
+                    if so_nguoi < 5 and may['id'] not in cac_map_da_gui:
                         ket_qua.append({
                             'id_may': may['id'],
                             'so_nguoi_choi': so_nguoi,
@@ -676,7 +644,7 @@ class Bot(discord.Client):
         self.add_view(DieuKhienDon())
     
     async def on_ready(self):
-        await nap_dem_don_tu_tin_nhan(self)
+        await nap_du_lieu_tu_dm(self)
         await self.bang_dieu_khien()
         self.vong_lap_quet.start()
         print(f"🚀 Bot sẵn sàng! Đơn tiếp theo: {dem_don + 1}")
@@ -721,23 +689,23 @@ class Bot(discord.Client):
         global id_tin_nhan_phan_ung
         kenh_phan_ung = self.get_channel(ID_KENH_PHAN_UNG)
         if kenh_phan_ung:
-            id_cu = doc_id_phan_ung_tu_tep()
+            # Tìm tin nhắn embed của bot đã có sẵn
             tin_nhan_cu = None
-            
-            if id_cu:
-                try:
-                    tin_nhan_cu = await kenh_phan_ung.fetch_message(id_cu)
-                except:
-                    pass
+            async for tin in kenh_phan_ung.history(limit=50):
+                if tin.author == self.user and tin.embeds:
+                    tin_nhan_cu = tin
+                    break
             
             if tin_nhan_cu:
+                # Để nguyên embed cũ, không xóa không tạo mới
                 id_tin_nhan_phan_ung = tin_nhan_cu.id
                 try:
                     await tin_nhan_cu.add_reaction(BIEU_TUONG_PHAN_UNG)
                 except:
                     pass
-                print(f"✅ Dùng lại tin nhắn phản ứng cũ: {tin_nhan_cu.id}")
+                print(f"✅ Giữ nguyên embed phản ứng cũ: {tin_nhan_cu.id}")
             else:
+                # Chỉ tạo mới nếu chưa có
                 async for tin in kenh_phan_ung.history(limit=50):
                     if tin.author == self.user:
                         await tin.delete()
@@ -745,7 +713,7 @@ class Bot(discord.Client):
                 bang_vai_tro = discord.Embed(
                     title="🎭 NHẬN VAI TRÒ",
                     description="━━━━━━━━━━━━━━━━━━━━━━\n"
-                               "✅ **Thả cảm xúc ✅ bên dưới để nhận vai trò!**\n"
+                               "✅ **ĐỂ XEM CÁC KÊNH CHAT, HÃY TICK VÀO BÊN DƯỚI ↓**\n"
                                "━━━━━━━━━━━━━━━━━━━━━━",
                     color=0x9b59b6
                 )
@@ -754,12 +722,11 @@ class Bot(discord.Client):
                 tin_nhan_moi = await kenh_phan_ung.send(embed=bang_vai_tro)
                 await tin_nhan_moi.add_reaction(BIEU_TUONG_PHAN_UNG)
                 id_tin_nhan_phan_ung = tin_nhan_moi.id
-                luu_id_phan_ung(id_tin_nhan_phan_ung)
                 print(f"✅ Đã tạo tin nhắn phản ứng mới: {tin_nhan_moi.id}")
     
-    @tasks.loop(seconds=150)
+    @tasks.loop(seconds=180)  # 3 PHÚT = 180 GIÂY
     async def vong_lap_quet(self):
-        global dang_quet
+        global dang_quet, cac_map_da_gui
         
         if not dang_quet:
             return
@@ -771,13 +738,20 @@ class Bot(discord.Client):
         cac_may = quet_divaz()
         
         if cac_may:
+            # Reset nếu tất cả map đều đã gửi
+            if len(cac_map_da_gui) > 50:
+                cac_map_da_gui.clear()
+            
             tot_nhat = cac_may[0]
             so_nguoi = tot_nhat['so_nguoi_choi']
             ma = tot_nhat['id_may'][-5:]
             mau_sac = 0x00ff00 if so_nguoi <= 3 else 0xffaa00
             bay_gio = gio_vn()
             
-            print(f"✅ Gửi server: #{ma} | {so_nguoi}/{tot_nhat['toi_da']} người")
+            # Đánh dấu map đã gửi
+            cac_map_da_gui.add(tot_nhat['id_may'])
+            
+            print(f"✅ Gửi server MỚI: #{ma} | {so_nguoi}/{tot_nhat['toi_da']} người")
             
             bang = discord.Embed(
                 title="🎮 DIVAZ - MÁY CHỦ TRỐNG",
@@ -792,11 +766,11 @@ class Bot(discord.Client):
             
             bang.set_thumbnail(url=ANH_NHO)
             bang.set_image(url=ANH_LON)
-            bang.set_footer(text=f"BotByPawPaw • {bay_gio.strftime('%H:%M:%S | %d/%m/%Y')}")
+            bang.set_footer(text=f"BotByPawPaw • {bay_gio.strftime('%H:%M:%S | %d/%m/%Y')} • MapID: {tot_nhat['id_may']}")
             
             await kenh.send(embed=bang, view=GiaoDienServer(tot_nhat))
         else:
-            print("❌ Không tìm thấy máy chủ nào!")
+            print("❌ Không tìm thấy máy chủ mới!")
     
     async def on_raw_reaction_add(self, du_lieu):
         global id_tin_nhan_phan_ung
