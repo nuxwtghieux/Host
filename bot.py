@@ -60,7 +60,7 @@ ID_MAP = "88323040672117"
 # PHẢN ỨNG NHẬN VAI TRÒ
 ID_KENH_PHAN_UNG = 1523970421819572345
 ID_VAI_TRO_PHAN_UNG = 1523599853882703882
-BIEU_TUONG_PHAN_UNG = "✅"
+BIEU_TUONG_PHAN_UNG = "<:baibien:1524068086796259499>"
 
 # ẢNH
 ANH_GIF = "https://cdn.discordapp.com/attachments/1524068633255481387/1524080452049305713/da685c21e4f555bad69f52593c221dc7.gif?ex=6a4e7207&is=6a4d2087&hm=e842d1cb89a17a009dc8355e701312ada2cec098742baaebbc50b670e411b04f&"
@@ -178,15 +178,15 @@ class BangKiemTraTien(discord.ui.Modal, title="Kiểm tra giá tiền"):
         vip = la_vip(tuong_tac.user)
         bay_gio = gio_vn()
         
-        bang = discord.Embed(title="💰 GIÁ CÀY TIỀN HIỆN TẠI 💰", color=0x3498db)
+        bang = discord.Embed(title="<:coin:1524084075609063434> GIÁ CÀY TIỀN HIỆN TẠI <:coin:1524084075609063434>", color=0x3498db)
         
         mo_ta = (
             "\n━━━━━━━━━━━━━━━━━━━━━━\n"
-            f"💵ㆍ**Số tiền cần cày:** **{tien:,} TIỀN**\n"
+            f"<:coin:1524084075609063434>ㆍ**Số tiền cần cày:** **{tien:,} TIỀN**\n"
             "━━━━━━━━━━━━━━━━━━━━━━\n"
-            f"💳ㆍ**Chuyển khoản (Bank):** {dinh_dang_gia(ngan_hang_goc, ngan_hang_giam, vip)}\n"
+            f"<:coin:1524084075609063434>ㆍ**Chuyển khoản (Bank):** {dinh_dang_gia(ngan_hang_goc, ngan_hang_giam, vip)}\n"
             "━━━━━━━━━━━━━━━━━━━━━━\n"
-            f"🔖ㆍ**Thẻ cào (Card):** {dinh_dang_gia(the_goc, the_giam, vip)}\n"
+            f"<:coin:1524084075609063434>ㆍ**Thẻ cào (Card):** {dinh_dang_gia(the_goc, the_giam, vip)}\n"
             "━━━━━━━━━━━━━━━━━━━━━━\n"
         )
         
@@ -222,15 +222,15 @@ class BangKiemTraSlay(discord.ui.Modal, title="Kiểm tra giá slay"):
         ngan_hang_giam = tinh_giam_gia(ngan_hang_goc, tuong_tac.user)
         bay_gio = gio_vn()
         
-        bang = discord.Embed(title="💅 GIÁ CÀY SLAY HIỆN TẠI 💅", color=0x3498db)
+        bang = discord.Embed(title="<:coin:1524084075609063434> GIÁ CÀY SLAY HIỆN TẠI <:coin:1524084075609063434>", color=0x3498db)
         
         mo_ta = (
             "\n━━━━━━━━━━━━━━━━━━━━━━\n"
-            f"💅ㆍ**Số slay cần cày:** **{slay:,} SLAY**\n"
+            f"<:coin:1524084075609063434>ㆍ**Số slay cần cày:** **{slay:,} SLAY**\n"
             "━━━━━━━━━━━━━━━━━━━━━━\n"
-            f"💳ㆍ**Chuyển khoản (Bank):** {dinh_dang_gia(ngan_hang_goc, ngan_hang_giam, vip)}\n"
+            f"<:coin:1524084075609063434>ㆍ**Chuyển khoản (Bank):** {dinh_dang_gia(ngan_hang_goc, ngan_hang_giam, vip)}\n"
             "━━━━━━━━━━━━━━━━━━━━━━\n"
-            f"🔖ㆍ**Thẻ cào (Card):** {chuoi_the}\n"
+            f"<:coin:1524084075609063434>ㆍ**Thẻ cào (Card):** {chuoi_the}\n"
             "━━━━━━━━━━━━━━━━━━━━━━\n"
         )
         
@@ -262,15 +262,15 @@ class BangVndSangTien(discord.ui.Modal, title="VND → Tiền cần cày"):
         vip = la_vip(tuong_tac.user)
         bay_gio = gio_vn()
         
-        bang = discord.Embed(title="💵 SỐ TIỀN CÀY BẠN NHẬN ĐƯỢC 💵", color=0xe67e22)
+        bang = discord.Embed(title="<:coin:1524084075609063434> SỐ TIỀN CÀY BẠN NHẬN ĐƯỢC <:coin:1524084075609063434>", color=0xe67e22)
         
         mo_ta = (
             "\n━━━━━━━━━━━━━━━━━━━━━━\n"
-            f"💳ㆍ**Số VND bạn trả:** **{vnd:,} VND**\n"
+            f"<:coin:1524084075609063434>ㆍ**Số VND bạn trả:** **{vnd:,} VND**\n"
             "━━━━━━━━━━━━━━━━━━━━━━\n"
-            f"💰ㆍ**Số tiền cày bạn nhận được:** **{tien_nhan:,} TIỀN**\n"
+            f"<:coin:1524084075609063434>ㆍ**Số tiền cày bạn nhận được:** **{tien_nhan:,} TIỀN**\n"
             "━━━━━━━━━━━━━━━━━━━━━━\n"
-            f"🔖ㆍ**Thẻ cào (Card):** {dinh_dang_gia(the_goc, the_giam, vip)}\n"
+            f"<:coin:1524084075609063434>ㆍ**Thẻ cào (Card):** {dinh_dang_gia(the_goc, the_giam, vip)}\n"
             "━━━━━━━━━━━━━━━━━━━━━━\n"
         )
         
@@ -843,16 +843,16 @@ class Bot(discord.Client):
         nhac_quan_tri = f"<@&{ID_QUAN_TRI}>"
         nhac_dieu_hanh = f"<@&{ID_DIEU_HANH}>"
         
-        bang = discord.Embed(title="# 🐬 CHÀO MỪNG 🐬", color=0x2ecc71)
+        bang = discord.Embed(title=" <:canh1:1524065837219184811> WELCOME <:canh2:1524063959504916642> ", color=0x2ecc71)
         bang.description = (
             "━━━━━━━━━━━━━━━━━━━━━━\n"
-            "# 🐳┆THÔNG TIN CỦA BẠN:\n"
+            "# <:tron:1524068013832278169>┆THÔNG TIN CỦA BẠN:\n"
             f"ㆍ*Tên*: {thanh_vien.mention}\n"
             f"ㆍ*Người dùng*: {thanh_vien.name}\n"
             f"ㆍ*ID*: {thanh_vien.id}\n"
             f"ㆍ*Ngày tạo*: {thanh_vien.created_at.strftime('%d-%m-%Y')}\n"
             "━━━━━━━━━━━━━━━━━━━━━━\n"
-            "# 🐳┆CỬA HÀNG PAWPAW:\n"
+            "# <:tron:1524068013832278169>┆CỬA HÀNG PAWPAW:\n"
             f"ㆍChào mừng bạn đã đến với {may_chu.name}!\n"
             f"ㆍBạn là thành viên thứ {may_chu.member_count} của {may_chu.name}\n"
             f"ㆍNếu thắc mắc và cần hỗ trợ, hãy liên hệ {nhac_quan_tri} và {nhac_dieu_hanh}.\n"
