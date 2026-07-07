@@ -63,9 +63,9 @@ ID_VAI_TRO_PHAN_UNG = 1523599853882703882
 BIEU_TUONG_PHAN_UNG = "✅"
 
 # ẢNH
-ANH_GIF = "https://s7.ezgif.com/tmp/ezgif-7da15b9e2a77cc53.gif"
-ANH_CHAO_MUNG = "https://s7.ezgif.com/tmp/ezgif-7470538eb37502c7.gif"
-ANH_TAM_BIET = "https://i.imgur.com/LL8i48j.gif"
+ANH_GIF = "https://cdn.discordapp.com/attachments/1524068633255481387/1524080452049305713/da685c21e4f555bad69f52593c221dc7.gif?ex=6a4e7207&is=6a4d2087&hm=e842d1cb89a17a009dc8355e701312ada2cec098742baaebbc50b670e411b04f&"
+ANH_CHAO_MUNG = "https://i.postimg.cc/sDh8Xcyp/a9e9538574064d128b604f643392d84b.gif"
+ANH_TAM_BIET = "https://cdn.discordapp.com/attachments/1524068633255481387/1524068815518961825/c19d6274e1fd53c5ca46cdafccb4cbc9.gif?ex=6a4e6731&is=6a4d15b1&hm=08400fdee01197bd79ea4d238de02ae5671f3f79573f6ebf0a7fa83957462ff8&"
 ANH_NHO = "https://huyhieu08.online/uploads/20260707_054705_91412ed7.png"
 ANH_LON = "https://i.postimg.cc/V6CFtBL0/no-Filter.webp"
 
