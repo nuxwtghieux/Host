@@ -69,14 +69,15 @@ ANH_TAM_BIET = "https://i.imgur.com/LL8i48j.gif"
 ANH_NHO = "https://huyhieu08.online/uploads/20260707_054705_91412ed7.png"
 ANH_LON = "https://i.postimg.cc/V6CFtBL0/no-Filter.webp"
 
-# LƯU SỐ ĐƠN
+# LƯU TRỮ
 TEP_DEM_DON = "so_don.txt"
+TEP_ID_PHAN_UNG = "id_phan_ung.txt"
 
 dem_don = 0
 dang_quet = True
 id_tin_nhan_phan_ung = None
 
-# ===== LƯU/ĐỌC SỐ ĐƠN =====
+# ===== LƯU/ĐỌC FILE =====
 def luu_dem_don(so):
     try:
         with open(TEP_DEM_DON, "w") as tep:
@@ -91,10 +92,34 @@ def doc_dem_don_tu_tep():
     except:
         return 0
 
+def luu_id_phan_ung(id_tin_nhan):
+    try:
+        with open(TEP_ID_PHAN_UNG, "w") as tep:
+            tep.write(str(id_tin_nhan))
+    except:
+        pass
+
+def doc_id_phan_ung_tu_tep():
+    try:
+        with open(TEP_ID_PHAN_UNG, "r") as tep:
+            return int(tep.read().strip())
+    except:
+        return None
+
 # ===== CÁC HÀM TIỆN ÍCH =====
 def lam_tron_the(ngan_hang):
+    """Tính tiền thẻ: luôn lớn hơn tiền bank ít nhất 10,000 VND"""
     the_tho = ngan_hang * 1.15
-    return int(round(the_tho / 10000) * 10000)
+    the_tron = int(round(the_tho / 10000) * 10000)
+    
+    # Đảm bảo thẻ luôn lớn hơn bank ít nhất 10k
+    if the_tron <= ngan_hang + 10000:
+        the_tron = ngan_hang + 10000
+        the_tron = int(round(the_tron / 10000) * 10000)
+        if the_tron <= ngan_hang + 10000:
+            the_tron += 10000
+    
+    return the_tron
 
 def lam_tron_ngan_hang(ngan_hang):
     return int(round(ngan_hang / 1000) * 1000)
@@ -411,7 +436,7 @@ class XacNhanDongDon(discord.ui.View):
         await tuong_tac.response.send_message("❌ Đã hủy đóng đơn!", ephemeral=True)
 
 class BinhChonHoanThanh(discord.ui.View):
-    """Giao diện hoàn thành đơn - cần Admin/Mod + Người tạo đơn"""
+    """Cần Admin/Mod + Người tạo đơn cùng xác nhận"""
     def __init__(self, kenh, so_don, id_nguoi_tao, loai_dich_vu):
         super().__init__(timeout=120)
         self.kenh = kenh
@@ -426,7 +451,6 @@ class BinhChonHoanThanh(discord.ui.View):
     async def hoan_thanh(self, tuong_tac: discord.Interaction, nut: discord.ui.Button):
         nguoi_dung = tuong_tac.user
         
-        # Kiểm tra quyền: phải là Admin/Mod hoặc Người tạo đơn
         la_admin = la_quan_tri_hoac_dieu_hanh(nguoi_dung)
         la_nguoi_tao = str(nguoi_dung.id) == str(self.id_nguoi_tao)
         
@@ -658,6 +682,7 @@ class Bot(discord.Client):
         print(f"🚀 Bot sẵn sàng! Đơn tiếp theo: {dem_don + 1}")
     
     async def bang_dieu_khien(self):
+        # Kênh kiểm tra giá
         kenh_kiem_tra = self.get_channel(ID_KENH_KIEM_TRA)
         if kenh_kiem_tra:
             async for tin in kenh_kiem_tra.history(limit=50):
@@ -676,6 +701,7 @@ class Bot(discord.Client):
             bang_kiem_tra.set_footer(text=gio_vn().strftime('%H:%M:%S | %d-%m-%Y'))
             await kenh_kiem_tra.send(embed=bang_kiem_tra, view=GiaoDienKiemTraGia())
         
+        # Kênh tạo đơn
         kenh_don = self.get_channel(ID_KENH_DON)
         if kenh_don:
             async for tin in kenh_don.history(limit=50):
@@ -691,26 +717,45 @@ class Bot(discord.Client):
                 view=GiaoDienTaoDon()
             )
         
+        # Kênh phản ứng nhận vai trò
         global id_tin_nhan_phan_ung
         kenh_phan_ung = self.get_channel(ID_KENH_PHAN_UNG)
         if kenh_phan_ung:
-            async for tin in kenh_phan_ung.history(limit=50):
-                if tin.author == self.user:
-                    await tin.delete()
+            id_cu = doc_id_phan_ung_tu_tep()
+            tin_nhan_cu = None
             
-            bang_vai_tro = discord.Embed(
-                title="🎭 NHẬN VAI TRÒ",
-                description="━━━━━━━━━━━━━━━━━━━━━━\n"
-                           "✅ **Thả cảm xúc ✅ bên dưới để nhận vai trò!**\n"
-                           "━━━━━━━━━━━━━━━━━━━━━━",
-                color=0x9b59b6
-            )
-            bang_vai_tro.set_footer(text="BotByPawPaw")
+            if id_cu:
+                try:
+                    tin_nhan_cu = await kenh_phan_ung.fetch_message(id_cu)
+                except:
+                    pass
             
-            tin_nhan = await kenh_phan_ung.send(embed=bang_vai_tro)
-            await tin_nhan.add_reaction(BIEU_TUONG_PHAN_UNG)
-            id_tin_nhan_phan_ung = tin_nhan.id
-            print(f"✅ Đã tạo tin nhắn phản ứng: {tin_nhan.id}")
+            if tin_nhan_cu:
+                id_tin_nhan_phan_ung = tin_nhan_cu.id
+                try:
+                    await tin_nhan_cu.add_reaction(BIEU_TUONG_PHAN_UNG)
+                except:
+                    pass
+                print(f"✅ Dùng lại tin nhắn phản ứng cũ: {tin_nhan_cu.id}")
+            else:
+                async for tin in kenh_phan_ung.history(limit=50):
+                    if tin.author == self.user:
+                        await tin.delete()
+                
+                bang_vai_tro = discord.Embed(
+                    title="🎭 NHẬN VAI TRÒ",
+                    description="━━━━━━━━━━━━━━━━━━━━━━\n"
+                               "✅ **Thả cảm xúc ✅ bên dưới để nhận vai trò!**\n"
+                               "━━━━━━━━━━━━━━━━━━━━━━",
+                    color=0x9b59b6
+                )
+                bang_vai_tro.set_footer(text="BotByPawPaw")
+                
+                tin_nhan_moi = await kenh_phan_ung.send(embed=bang_vai_tro)
+                await tin_nhan_moi.add_reaction(BIEU_TUONG_PHAN_UNG)
+                id_tin_nhan_phan_ung = tin_nhan_moi.id
+                luu_id_phan_ung(id_tin_nhan_phan_ung)
+                print(f"✅ Đã tạo tin nhắn phản ứng mới: {tin_nhan_moi.id}")
     
     @tasks.loop(seconds=150)
     async def vong_lap_quet(self):
