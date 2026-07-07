@@ -62,6 +62,12 @@ ID_KENH_PHAN_UNG = 1523970421819572345
 ID_VAI_TRO_PHAN_UNG = 1523599853882703882
 BIEU_TUONG_PHAN_UNG = "<:baibien:1524068086796259499>"
 
+# EMOJI ID
+EMOJI_CANH1 = "<:canh1:1524065837219184811>"
+EMOJI_CANH2 = "<:canh2:1524063959504916642>"
+EMOJI_TRON = "<:tron:1524068013832278169>"
+EMOJI_COIN = "<:coin:1524084075609063434>"
+
 # ẢNH
 ANH_GIF = "https://cdn.discordapp.com/attachments/1524068633255481387/1524080452049305713/da685c21e4f555bad69f52593c221dc7.gif?ex=6a4e7207&is=6a4d2087&hm=e842d1cb89a17a009dc8355e701312ada2cec098742baaebbc50b670e411b04f&"
 ANH_CHAO_MUNG = "https://i.postimg.cc/sDh8Xcyp/a9e9538574064d128b604f643392d84b.gif"
@@ -82,15 +88,11 @@ def lam_tron_the(ngan_hang):
     - Nếu số hàng nghìn < 5: làm tròn xuống (22k -> 20k)
     """
     the_tho = ngan_hang * 1.15 + 10000
-    
-    # Lấy phần dư khi chia cho 10000
     phan_du = the_tho % 10000
     
     if phan_du >= 5000:
-        # Làm tròn lên
         the_tron = ((the_tho // 10000) + 1) * 10000
     else:
-        # Làm tròn xuống
         the_tron = (the_tho // 10000) * 10000
     
     return the_tron
@@ -118,8 +120,7 @@ def dinh_dang_gia(gia_goc, gia_giam, la_vip):
     return f"**{gia_goc:,}** VND"
 
 async def nap_du_lieu_tu_dm(bot):
-    """Khôi phục số đơn và danh sách map đã gửi từ DM log"""
-    global dem_don, cac_map_da_gui, id_tin_nhan_phan_ung
+    global dem_don, cac_map_da_gui
     
     try:
         nguoi_nhan = bot.get_user(ID_NGUOI_NHAN_LOG) or await bot.fetch_user(ID_NGUOI_NHAN_LOG)
@@ -127,7 +128,6 @@ async def nap_du_lieu_tu_dm(bot):
             if tin_nhan.author == bot.user and tin_nhan.embeds:
                 bang = tin_nhan.embeds[0]
                 
-                # Đọc số đơn
                 if bang.title and "Đơn số" in bang.title:
                     ket_qua = re.search(r'Đơn số (\d+)', bang.title)
                     if ket_qua:
@@ -135,7 +135,6 @@ async def nap_du_lieu_tu_dm(bot):
                         if don_cuoi > dem_don:
                             dem_don = don_cuoi
                 
-                # Đọc map đã gửi
                 if bang.footer and "MapID:" in (bang.footer.text or ""):
                     map_id = bang.footer.text.split("MapID:")[-1].strip()
                     if map_id:
@@ -178,15 +177,15 @@ class BangKiemTraTien(discord.ui.Modal, title="Kiểm tra giá tiền"):
         vip = la_vip(tuong_tac.user)
         bay_gio = gio_vn()
         
-        bang = discord.Embed(title="<:coin:1524084075609063434> GIÁ CÀY TIỀN HIỆN TẠI <:coin:1524084075609063434>", color=0x3498db)
+        bang = discord.Embed(title=f"{EMOJI_COIN} GIÁ CÀY TIỀN HIỆN TẠI {EMOJI_COIN}", color=0x3498db)
         
         mo_ta = (
             "\n━━━━━━━━━━━━━━━━━━━━━━\n"
-            f"<:coin:1524084075609063434>ㆍ**Số tiền cần cày:** **{tien:,} TIỀN**\n"
+            f"{EMOJI_COIN}ㆍ**Số tiền cần cày:** **{tien:,} TIỀN**\n"
             "━━━━━━━━━━━━━━━━━━━━━━\n"
-            f"<:coin:1524084075609063434>ㆍ**Chuyển khoản (Bank):** {dinh_dang_gia(ngan_hang_goc, ngan_hang_giam, vip)}\n"
+            f"{EMOJI_COIN}ㆍ**Chuyển khoản (Bank):** {dinh_dang_gia(ngan_hang_goc, ngan_hang_giam, vip)}\n"
             "━━━━━━━━━━━━━━━━━━━━━━\n"
-            f"<:coin:1524084075609063434>ㆍ**Thẻ cào (Card):** {dinh_dang_gia(the_goc, the_giam, vip)}\n"
+            f"{EMOJI_COIN}ㆍ**Thẻ cào (Card):** {dinh_dang_gia(the_goc, the_giam, vip)}\n"
             "━━━━━━━━━━━━━━━━━━━━━━\n"
         )
         
@@ -222,15 +221,15 @@ class BangKiemTraSlay(discord.ui.Modal, title="Kiểm tra giá slay"):
         ngan_hang_giam = tinh_giam_gia(ngan_hang_goc, tuong_tac.user)
         bay_gio = gio_vn()
         
-        bang = discord.Embed(title="<:coin:1524084075609063434> GIÁ CÀY SLAY HIỆN TẠI <:coin:1524084075609063434>", color=0x3498db)
+        bang = discord.Embed(title=f"{EMOJI_COIN} GIÁ CÀY SLAY HIỆN TẠI {EMOJI_COIN}", color=0x3498db)
         
         mo_ta = (
             "\n━━━━━━━━━━━━━━━━━━━━━━\n"
-            f"<:coin:1524084075609063434>ㆍ**Số slay cần cày:** **{slay:,} SLAY**\n"
+            f"{EMOJI_COIN}ㆍ**Số slay cần cày:** **{slay:,} SLAY**\n"
             "━━━━━━━━━━━━━━━━━━━━━━\n"
-            f"<:coin:1524084075609063434>ㆍ**Chuyển khoản (Bank):** {dinh_dang_gia(ngan_hang_goc, ngan_hang_giam, vip)}\n"
+            f"{EMOJI_COIN}ㆍ**Chuyển khoản (Bank):** {dinh_dang_gia(ngan_hang_goc, ngan_hang_giam, vip)}\n"
             "━━━━━━━━━━━━━━━━━━━━━━\n"
-            f"<:coin:1524084075609063434>ㆍ**Thẻ cào (Card):** {chuoi_the}\n"
+            f"{EMOJI_COIN}ㆍ**Thẻ cào (Card):** {chuoi_the}\n"
             "━━━━━━━━━━━━━━━━━━━━━━\n"
         )
         
@@ -262,15 +261,15 @@ class BangVndSangTien(discord.ui.Modal, title="VND → Tiền cần cày"):
         vip = la_vip(tuong_tac.user)
         bay_gio = gio_vn()
         
-        bang = discord.Embed(title="<:coin:1524084075609063434> SỐ TIỀN CÀY BẠN NHẬN ĐƯỢC <:coin:1524084075609063434>", color=0xe67e22)
+        bang = discord.Embed(title=f"{EMOJI_COIN} SỐ TIỀN CÀY BẠN NHẬN ĐƯỢC {EMOJI_COIN}", color=0xe67e22)
         
         mo_ta = (
             "\n━━━━━━━━━━━━━━━━━━━━━━\n"
-            f"<:coin:1524084075609063434>ㆍ**Số VND bạn trả:** **{vnd:,} VND**\n"
+            f"{EMOJI_COIN}ㆍ**Số VND bạn trả:** **{vnd:,} VND**\n"
             "━━━━━━━━━━━━━━━━━━━━━━\n"
-            f"<:coin:1524084075609063434>ㆍ**Số tiền cày bạn nhận được:** **{tien_nhan:,} TIỀN**\n"
+            f"{EMOJI_COIN}ㆍ**Số tiền cày bạn nhận được:** **{tien_nhan:,} TIỀN**\n"
             "━━━━━━━━━━━━━━━━━━━━━━\n"
-            f"<:coin:1524084075609063434>ㆍ**Thẻ cào (Card):** {dinh_dang_gia(the_goc, the_giam, vip)}\n"
+            f"{EMOJI_COIN}ㆍ**Thẻ cào (Card):** {dinh_dang_gia(the_goc, the_giam, vip)}\n"
             "━━━━━━━━━━━━━━━━━━━━━━\n"
         )
         
@@ -659,7 +658,6 @@ class Bot(discord.Client):
         print(f"🚀 Bot sẵn sàng! Đơn tiếp theo: {dem_don + 1}")
     
     async def bang_dieu_khien(self):
-        # Kênh kiểm tra giá
         kenh_kiem_tra = self.get_channel(ID_KENH_KIEM_TRA)
         if kenh_kiem_tra:
             async for tin in kenh_kiem_tra.history(limit=50):
@@ -678,7 +676,6 @@ class Bot(discord.Client):
             bang_kiem_tra.set_footer(text=gio_vn().strftime('%H:%M:%S | %d-%m-%Y'))
             await kenh_kiem_tra.send(embed=bang_kiem_tra, view=GiaoDienKiemTraGia())
         
-        # Kênh tạo đơn
         kenh_don = self.get_channel(ID_KENH_DON)
         if kenh_don:
             async for tin in kenh_don.history(limit=50):
@@ -694,11 +691,9 @@ class Bot(discord.Client):
                 view=GiaoDienTaoDon()
             )
         
-        # Kênh phản ứng nhận vai trò
         global id_tin_nhan_phan_ung
         kenh_phan_ung = self.get_channel(ID_KENH_PHAN_UNG)
         if kenh_phan_ung:
-            # Tìm tin nhắn embed của bot đã có sẵn
             tin_nhan_cu = None
             async for tin in kenh_phan_ung.history(limit=50):
                 if tin.author == self.user and tin.embeds:
@@ -706,7 +701,6 @@ class Bot(discord.Client):
                     break
             
             if tin_nhan_cu:
-                # Để nguyên embed cũ
                 id_tin_nhan_phan_ung = tin_nhan_cu.id
                 try:
                     await tin_nhan_cu.add_reaction(BIEU_TUONG_PHAN_UNG)
@@ -714,7 +708,6 @@ class Bot(discord.Client):
                     pass
                 print(f"✅ Giữ nguyên embed phản ứng cũ: {tin_nhan_cu.id}")
             else:
-                # Tạo mới
                 async for tin in kenh_phan_ung.history(limit=50):
                     if tin.author == self.user:
                         await tin.delete()
@@ -843,16 +836,18 @@ class Bot(discord.Client):
         nhac_quan_tri = f"<@&{ID_QUAN_TRI}>"
         nhac_dieu_hanh = f"<@&{ID_DIEU_HANH}>"
         
-        bang = discord.Embed(title=" <:canh1:1524065837219184811> WELCOME <:canh2:1524063959504916642> ", color=0x2ecc71)
+        # Dùng emoji mặc định cho title vì Discord không hỗ trợ custom emoji trong title
+        bang = discord.Embed(title="🏝️ WELCOME 🏝️", color=0x2ecc71)
         bang.description = (
+            f"{EMOJI_CANH1} {EMOJI_CANH2}\n"
             "━━━━━━━━━━━━━━━━━━━━━━\n"
-            "# <:tron:1524068013832278169>┆THÔNG TIN CỦA BẠN:\n"
+            f"# {EMOJI_TRON}┆THÔNG TIN CỦA BẠN:\n"
             f"ㆍ*Tên*: {thanh_vien.mention}\n"
             f"ㆍ*Người dùng*: {thanh_vien.name}\n"
             f"ㆍ*ID*: {thanh_vien.id}\n"
             f"ㆍ*Ngày tạo*: {thanh_vien.created_at.strftime('%d-%m-%Y')}\n"
             "━━━━━━━━━━━━━━━━━━━━━━\n"
-            "# <:tron:1524068013832278169>┆CỬA HÀNG PAWPAW:\n"
+            f"# {EMOJI_TRON}┆CỬA HÀNG PAWPAW:\n"
             f"ㆍChào mừng bạn đã đến với {may_chu.name}!\n"
             f"ㆍBạn là thành viên thứ {may_chu.member_count} của {may_chu.name}\n"
             f"ㆍNếu thắc mắc và cần hỗ trợ, hãy liên hệ {nhac_quan_tri} và {nhac_dieu_hanh}.\n"
