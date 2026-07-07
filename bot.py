@@ -60,13 +60,13 @@ ID_MAP = "88323040672117"
 # PHẢN ỨNG NHẬN VAI TRÒ
 ID_KENH_PHAN_UNG = 1523970421819572345
 ID_VAI_TRO_PHAN_UNG = 1523599853882703882
-BIEU_TUONG_PHAN_UNG = "<:baibien:1524068086796259499>"
 
-# EMOJI ID
-EMOJI_CANH1 = "<:canh1:1524065837219184811>"
-EMOJI_CANH2 = "<:canh2:1524063959504916642>"
-EMOJI_TRON = "<:tron:1524068013832278169>"
-EMOJI_COIN = "<:coin:1524084075609063434>"
+# EMOJI - SẼ TỰ ĐỘNG NẠP TỪ SERVER
+EMOJI_CANH1 = "✨"
+EMOJI_CANH2 = "✨"
+EMOJI_TRON = "🔹"
+EMOJI_COIN = "💰"
+BIEU_TUONG_PHAN_UNG = "✅"
 
 # ẢNH
 ANH_GIF = "https://cdn.discordapp.com/attachments/1524068633255481387/1524080452049305713/da685c21e4f555bad69f52593c221dc7.gif?ex=6a4e7207&is=6a4d2087&hm=e842d1cb89a17a009dc8355e701312ada2cec098742baaebbc50b670e411b04f&"
@@ -80,13 +80,30 @@ dang_quet = True
 id_tin_nhan_phan_ung = None
 cac_map_da_gui = set()
 
+# ===== NẠP EMOJI TỰ ĐỘNG =====
+def nap_emoji_tu_may_chu(bot):
+    global EMOJI_CANH1, EMOJI_CANH2, EMOJI_TRON, EMOJI_COIN, BIEU_TUONG_PHAN_UNG
+    
+    may_chu = bot.get_guild(ID_MAY_CHU)
+    if not may_chu:
+        return
+    
+    for emoji in may_chu.emojis:
+        if emoji.name == "canh1":
+            EMOJI_CANH1 = str(emoji)
+        elif emoji.name == "canh2":
+            EMOJI_CANH2 = str(emoji)
+        elif emoji.name == "tron":
+            EMOJI_TRON = str(emoji)
+        elif emoji.name == "coin":
+            EMOJI_COIN = str(emoji)
+        elif emoji.name == "baibien":
+            BIEU_TUONG_PHAN_UNG = str(emoji)
+    
+    print(f"✅ Đã nạp emoji: canh1={EMOJI_CANH1}, canh2={EMOJI_CANH2}, tron={EMOJI_TRON}, coin={EMOJI_COIN}, baibien={BIEU_TUONG_PHAN_UNG}")
+
 # ===== CÁC HÀM TIỆN ÍCH =====
 def lam_tron_the(ngan_hang):
-    """
-    Tính tiền thẻ: bank * 1.15 + 10k, làm tròn về số chẵn 10k
-    - Nếu số hàng nghìn >= 5: làm tròn lên (25k -> 30k)
-    - Nếu số hàng nghìn < 5: làm tròn xuống (22k -> 20k)
-    """
     the_tho = ngan_hang * 1.15 + 10000
     phan_du = the_tho % 10000
     
@@ -399,7 +416,6 @@ class XacNhanDongDon(discord.ui.View):
     async def xac_nhan(self, tuong_tac: discord.Interaction, nut: discord.ui.Button):
         if not la_quan_tri_hoac_dieu_hanh(tuong_tac.user):
             return await tuong_tac.response.send_message("❌ Chỉ Quản trị/Điều hành mới có quyền!", ephemeral=True)
-        
         await tuong_tac.response.send_message("🔒 Đang đóng...", ephemeral=True)
         await gui_nhat_ky_don(tuong_tac.client, self.so_don, self.id_nguoi_tao, tuong_tac.user.mention, self.loai_dich_vu)
         await self.kenh.delete()
@@ -408,7 +424,6 @@ class XacNhanDongDon(discord.ui.View):
     async def huy(self, tuong_tac: discord.Interaction, nut: discord.ui.Button):
         if not la_quan_tri_hoac_dieu_hanh(tuong_tac.user):
             return await tuong_tac.response.send_message("❌ Chỉ Quản trị/Điều hành mới có quyền!", ephemeral=True)
-        
         await tuong_tac.message.delete()
         await tuong_tac.response.send_message("❌ Đã hủy đóng đơn!", ephemeral=True)
 
@@ -426,22 +441,17 @@ class BinhChonHoanThanh(discord.ui.View):
     @discord.ui.button(label="✅ Hoàn thành đơn", style=discord.ButtonStyle.green)
     async def hoan_thanh(self, tuong_tac: discord.Interaction, nut: discord.ui.Button):
         nguoi_dung = tuong_tac.user
-        
         la_admin = la_quan_tri_hoac_dieu_hanh(nguoi_dung)
         la_nguoi_tao = str(nguoi_dung.id) == str(self.id_nguoi_tao)
         
         if not la_admin and not la_nguoi_tao:
             return await tuong_tac.response.send_message("❌ Chỉ Quản trị/Điều hành hoặc Người tạo đơn mới có quyền!", ephemeral=True)
-        
         if nguoi_dung.id in self.nguoi_bau:
             return await tuong_tac.response.send_message("❌ Bạn đã bấm rồi!", ephemeral=True)
         
         self.nguoi_bau.add(nguoi_dung.id)
-        
-        if la_admin:
-            self.da_co_admin = True
-        if la_nguoi_tao:
-            self.da_co_nguoi_tao = True
+        if la_admin: self.da_co_admin = True
+        if la_nguoi_tao: self.da_co_nguoi_tao = True
         
         if self.da_co_admin and self.da_co_nguoi_tao:
             await tuong_tac.response.send_message("✅ Đơn đã hoàn thành! Đang đóng...", ephemeral=True)
@@ -449,22 +459,14 @@ class BinhChonHoanThanh(discord.ui.View):
             await self.kenh.delete()
         else:
             con_thieu = []
-            if not self.da_co_admin:
-                con_thieu.append("**Quản trị/Điều hành**")
-            if not self.da_co_nguoi_tao:
-                con_thieu.append("**Người tạo đơn**")
-            
+            if not self.da_co_admin: con_thieu.append("**Quản trị/Điều hành**")
+            if not self.da_co_nguoi_tao: con_thieu.append("**Người tạo đơn**")
             await tuong_tac.response.send_message(f"✅ Đã ghi nhận! Cần thêm {' và '.join(con_thieu)} xác nhận.", ephemeral=True)
     
     @discord.ui.button(label="❌ Hủy", style=discord.ButtonStyle.grey)
     async def huy(self, tuong_tac: discord.Interaction, nut: discord.ui.Button):
-        nguoi_dung = tuong_tac.user
-        la_admin = la_quan_tri_hoac_dieu_hanh(nguoi_dung)
-        la_nguoi_tao = str(nguoi_dung.id) == str(self.id_nguoi_tao)
-        
-        if not la_admin and not la_nguoi_tao:
-            return await tuong_tac.response.send_message("❌ Chỉ Quản trị/Điều hành hoặc Người tạo đơn mới có quyền!", ephemeral=True)
-        
+        if not la_quan_tri_hoac_dieu_hanh(tuong_tac.user) and str(tuong_tac.user.id) != str(self.id_nguoi_tao):
+            return await tuong_tac.response.send_message("❌ Không có quyền!", ephemeral=True)
         await tuong_tac.message.delete()
         await tuong_tac.response.send_message("❌ Đã hủy!", ephemeral=True)
 
@@ -480,7 +482,6 @@ class DieuKhienDon(discord.ui.View):
         ten_kenh = tuong_tac.channel.name
         phan = ten_kenh.split("-")
         so_don = phan[1] if len(phan) > 1 else "???"
-        
         du_lieu_chu_de = tuong_tac.channel.topic
         if du_lieu_chu_de and "|" in du_lieu_chu_de:
             id_nguoi_tao, loai_dich_vu = du_lieu_chu_de.split("|", 1)
@@ -488,21 +489,15 @@ class DieuKhienDon(discord.ui.View):
             id_nguoi_tao = du_lieu_chu_de
             loai_dich_vu = "Không xác định"
         
-        bang = discord.Embed(
-            title="⚠️ XÁC NHẬN ĐÓNG ĐƠN",
-            description=f"Bạn có chắc muốn đóng đơn **#{so_don}**?",
-            color=0xff0000
-        )
+        bang = discord.Embed(title="⚠️ XÁC NHẬN ĐÓNG ĐƠN", description=f"Bạn có chắc muốn đóng đơn **#{so_don}**?", color=0xff0000)
         await tuong_tac.response.send_message(embed=bang, view=XacNhanDongDon(tuong_tac.channel, so_don, id_nguoi_tao, loai_dich_vu), ephemeral=False)
     
     @discord.ui.button(label="✅ Hoàn thành đơn", style=discord.ButtonStyle.green, custom_id="hoan_thanh_don")
     async def hoan_thanh(self, tuong_tac: discord.Interaction, nut: discord.ui.Button):
         nguoi_dung = tuong_tac.user
-        
         ten_kenh = tuong_tac.channel.name
         phan = ten_kenh.split("-")
         so_don = phan[1] if len(phan) > 1 else "???"
-        
         du_lieu_chu_de = tuong_tac.channel.topic
         if du_lieu_chu_de and "|" in du_lieu_chu_de:
             id_nguoi_tao, loai_dich_vu = du_lieu_chu_de.split("|", 1)
@@ -516,11 +511,7 @@ class DieuKhienDon(discord.ui.View):
         if not la_admin and not la_nguoi_tao:
             return await tuong_tac.response.send_message("❌ Chỉ Quản trị/Điều hành hoặc Người tạo đơn mới có quyền!", ephemeral=True)
         
-        bang = discord.Embed(
-            title="✅ HOÀN THÀNH ĐƠN",
-            description=f"**Cần Quản trị/Điều hành VÀ Người tạo đơn xác nhận** để hoàn thành đơn **#{so_don}**",
-            color=0x00ff00
-        )
+        bang = discord.Embed(title="✅ HOÀN THÀNH ĐƠN", description=f"**Cần Quản trị/Điều hành VÀ Người tạo đơn xác nhận** để hoàn thành đơn **#{so_don}**", color=0x00ff00)
         await tuong_tac.response.send_message(embed=bang, view=BinhChonHoanThanh(tuong_tac.channel, so_don, id_nguoi_tao, loai_dich_vu), ephemeral=False)
     
     @discord.ui.button(label="🧾 Đóng đơn kèm lý do", style=discord.ButtonStyle.grey, custom_id="dong_don_ly_do")
@@ -618,7 +609,6 @@ async def lenh_tat_tim_map(tuong_tac: discord.Interaction):
     global dang_quet
     if not la_quan_tri(tuong_tac.user):
         return await tuong_tac.response.send_message("❌ Chỉ Quản trị mới dùng được lệnh này!", ephemeral=True)
-    
     dang_quet = False
     await tuong_tac.response.send_message("⏸️ Đã **tắt** quét map Divaz!", ephemeral=True)
 
@@ -627,7 +617,6 @@ async def lenh_bat_tim_map(tuong_tac: discord.Interaction):
     global dang_quet
     if not la_quan_tri(tuong_tac.user):
         return await tuong_tac.response.send_message("❌ Chỉ Quản trị mới dùng được lệnh này!", ephemeral=True)
-    
     dang_quet = True
     await tuong_tac.response.send_message("▶️ Đã **bật** quét map Divaz!", ephemeral=True)
 
@@ -652,6 +641,7 @@ class Bot(discord.Client):
         self.add_view(DieuKhienDon())
     
     async def on_ready(self):
+        nap_emoji_tu_may_chu(self)
         await nap_du_lieu_tu_dm(self)
         await self.bang_dieu_khien()
         self.vong_lap_quet.start()
@@ -668,7 +658,7 @@ class Bot(discord.Client):
                 title="‼️ HƯỚNG DẪN KIỂM TRA GIÁ 📍",
                 description="━━━━━━━━━━━━━━━━━━━━━━\n"
                            "📌 BƯỚC 1ㆍNhấn '💰 Tiền Divaz → VND' hoặc '💅 Slay → VND' để xem giá.\n\n"
-                           "📌 BƯỚC 2ㆍNhập số tiền/slay bạn muốn cày (VD: 100.000K, 2000 slay).\n\n"
+                           "📌 BƯỚC 2ㆍNhập số tiền/slay bạn muốn cày.\n\n"
                            "📌 BƯỚC 3ㆍSau đó 'gửi' sẽ biết ngay số tiền phải trả.\n\n"
                            "💡 **Nút phụ:** '💵 VND → Tiền cày' và '💳 VND → Slay' để tính ngược từ VND.",
                 color=0x3498db
@@ -681,13 +671,8 @@ class Bot(discord.Client):
             async for tin in kenh_don.history(limit=50):
                 if tin.author == self.user:
                     await tin.delete()
-            
             await kenh_don.send(
-                embed=discord.Embed(
-                    title="🛒 DỊCH VỤ CÀY TIỀN & SLAY",
-                    description="━━━━━━━━━━━━━━━━━━━━━━\n✅ HÃY TẠO ĐƠN Ở NÚT BÊN DƯỚI NẾU BẠN CÓ NHU CẦU CẦN CÀY TIỀN HOẶC SLAY DIVAZ 💤",
-                    color=0x3498db
-                ),
+                embed=discord.Embed(title="🛒 DỊCH VỤ CÀY TIỀN & SLAY", description="━━━━━━━━━━━━━━━━━━━━━━\n✅ HÃY TẠO ĐƠN Ở NÚT BÊN DƯỚI!", color=0x3498db),
                 view=GiaoDienTaoDon()
             )
         
@@ -836,10 +821,10 @@ class Bot(discord.Client):
         nhac_quan_tri = f"<@&{ID_QUAN_TRI}>"
         nhac_dieu_hanh = f"<@&{ID_DIEU_HANH}>"
         
-        # Dùng emoji mặc định cho title vì Discord không hỗ trợ custom emoji trong title
-        bang = discord.Embed(title="🏝️ WELCOME 🏝️", color=0x2ecc71)
+        # Bỏ title, dùng description làm welcome
+        bang = discord.Embed(color=0x2ecc71)
         bang.description = (
-            f"{EMOJI_CANH1} {EMOJI_CANH2}\n"
+            f"# {EMOJI_CANH1} CHÀO MỪNG THÀNH VIÊN MỚI {EMOJI_CANH2}\n"
             "━━━━━━━━━━━━━━━━━━━━━━\n"
             f"# {EMOJI_TRON}┆THÔNG TIN CỦA BẠN:\n"
             f"ㆍ*Tên*: {thanh_vien.mention}\n"
