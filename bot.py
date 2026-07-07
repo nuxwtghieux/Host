@@ -20,7 +20,6 @@ except:
     pass
 
 def gio_vn():
-    """Trả về thời gian hiện tại theo múi giờ Việt Nam (GMT+7)"""
     return datetime.now(timezone(timedelta(hours=7)))
 
 # ===== TẮT NHẬT KÝ =====
@@ -70,9 +69,27 @@ ANH_TAM_BIET = "https://i.imgur.com/LL8i48j.gif"
 ANH_NHO = "https://huyhieu08.online/uploads/20260707_054705_91412ed7.png"
 ANH_LON = "https://i.postimg.cc/V6CFtBL0/no-Filter.webp"
 
+# LƯU SỐ ĐƠN
+TEP_DEM_DON = "so_don.txt"
+
 dem_don = 0
 dang_quet = True
 id_tin_nhan_phan_ung = None
+
+# ===== LƯU/ĐỌC SỐ ĐƠN =====
+def luu_dem_don(so):
+    try:
+        with open(TEP_DEM_DON, "w") as tep:
+            tep.write(str(so))
+    except:
+        pass
+
+def doc_dem_don_tu_tep():
+    try:
+        with open(TEP_DEM_DON, "r") as tep:
+            return int(tep.read().strip())
+    except:
+        return 0
 
 # ===== CÁC HÀM TIỆN ÍCH =====
 def lam_tron_the(ngan_hang):
@@ -92,13 +109,11 @@ def la_vip(thanh_vien: discord.Member):
     return any(vai_tro.id == ID_VIP for vai_tro in thanh_vien.roles)
 
 def tinh_giam_gia(so_tien, thanh_vien):
-    """Tính giá sau giảm nếu là VIP"""
     if la_vip(thanh_vien):
-        return int(so_tien * 0.97)  # Giảm 3%
+        return int(so_tien * 0.97)
     return so_tien
 
 def dinh_dang_gia(gia_goc, gia_giam, la_vip):
-    """Format giá: giá VIP bên trái, giá gốc gạch bên phải, (VIP)"""
     if la_vip and gia_giam != gia_goc:
         return f"**{gia_giam:,}** VND ~~{gia_goc:,} VND~~ (VIP)"
     return f"**{gia_goc:,}** VND"
@@ -116,6 +131,11 @@ async def nap_dem_don_tu_tin_nhan(bot):
                         don_cuoi = int(ket_qua.group(1))
                         if don_cuoi > dem_don:
                             dem_don = don_cuoi
+        
+        don_tep = doc_dem_don_tu_tep()
+        if don_tep > dem_don:
+            dem_don = don_tep
+            
         print(f"✅ Số đơn hiện tại: {dem_don}")
     except Exception as e:
         print(f"❌ Lỗi đọc tin nhắn: {e}")
@@ -148,12 +168,9 @@ class BangKiemTraTien(discord.ui.Modal, title="Kiểm tra giá tiền"):
         
         ngan_hang_goc = lam_tron_ngan_hang(int(tien * 0.12))
         the_goc = lam_tron_the(ngan_hang_goc)
-        
-        # Giảm giá nếu VIP
         ngan_hang_giam = tinh_giam_gia(ngan_hang_goc, tuong_tac.user)
         the_giam = tinh_giam_gia(the_goc, tuong_tac.user)
         vip = la_vip(tuong_tac.user)
-        
         bay_gio = gio_vn()
         
         bang = discord.Embed(title="💰 GIÁ CÀY TIỀN HIỆN TẠI 💰", color=0x3498db)
@@ -238,7 +255,6 @@ class BangVndSangTien(discord.ui.Modal, title="VND → Tiền cần cày"):
         the_goc = lam_tron_the(ngan_hang_goc)
         the_giam = tinh_giam_gia(the_goc, tuong_tac.user)
         vip = la_vip(tuong_tac.user)
-        
         bay_gio = gio_vn()
         
         bang = discord.Embed(title="💵 SỐ TIỀN CÀY BẠN NHẬN ĐƯỢC 💵", color=0xe67e22)
@@ -324,8 +340,10 @@ class BangTaoDon(discord.ui.Modal, title="Tạo đơn"):
         
         danh_muc = may_chu.get_channel(ID_DANH_MUC_DON)
         dem_don += 1
+        luu_dem_don(dem_don)
         if dem_don > 999:
             dem_don = 1
+            luu_dem_don(dem_don)
         
         so_don = f"{dem_don:03d}"
         bay_gio = gio_vn()
@@ -368,7 +386,6 @@ class BangLyDoDong(discord.ui.Modal, title="Đóng đơn - lý do"):
 
 # ===== GIAO DIỆN =====
 class XacNhanDongDon(discord.ui.View):
-    """Giao diện xác nhận đóng đơn"""
     def __init__(self, kenh, so_don, id_nguoi_tao, loai_dich_vu):
         super().__init__(timeout=30)
         self.kenh = kenh
@@ -394,36 +411,59 @@ class XacNhanDongDon(discord.ui.View):
         await tuong_tac.response.send_message("❌ Đã hủy đóng đơn!", ephemeral=True)
 
 class BinhChonHoanThanh(discord.ui.View):
-    """Giao diện hoàn thành đơn - cần 2 người bấm"""
+    """Giao diện hoàn thành đơn - cần Admin/Mod + Người tạo đơn"""
     def __init__(self, kenh, so_don, id_nguoi_tao, loai_dich_vu):
-        super().__init__(timeout=60)
+        super().__init__(timeout=120)
         self.kenh = kenh
         self.so_don = so_don
         self.id_nguoi_tao = id_nguoi_tao
         self.loai_dich_vu = loai_dich_vu
         self.nguoi_bau = set()
+        self.da_co_admin = False
+        self.da_co_nguoi_tao = False
     
     @discord.ui.button(label="✅ Hoàn thành đơn", style=discord.ButtonStyle.green)
     async def hoan_thanh(self, tuong_tac: discord.Interaction, nut: discord.ui.Button):
-        if not la_quan_tri_hoac_dieu_hanh(tuong_tac.user):
-            return await tuong_tac.response.send_message("❌ Chỉ Quản trị/Điều hành mới có quyền!", ephemeral=True)
+        nguoi_dung = tuong_tac.user
         
-        if tuong_tac.user.id in self.nguoi_bau:
-            return await tuong_tac.response.send_message("❌ Bạn đã bấm rồi! Cần thêm người khác xác nhận.", ephemeral=True)
+        # Kiểm tra quyền: phải là Admin/Mod hoặc Người tạo đơn
+        la_admin = la_quan_tri_hoac_dieu_hanh(nguoi_dung)
+        la_nguoi_tao = str(nguoi_dung.id) == str(self.id_nguoi_tao)
         
-        self.nguoi_bau.add(tuong_tac.user.id)
+        if not la_admin and not la_nguoi_tao:
+            return await tuong_tac.response.send_message("❌ Chỉ Quản trị/Điều hành hoặc Người tạo đơn mới có quyền!", ephemeral=True)
         
-        if len(self.nguoi_bau) >= 2:
+        if nguoi_dung.id in self.nguoi_bau:
+            return await tuong_tac.response.send_message("❌ Bạn đã bấm rồi!", ephemeral=True)
+        
+        self.nguoi_bau.add(nguoi_dung.id)
+        
+        if la_admin:
+            self.da_co_admin = True
+        if la_nguoi_tao:
+            self.da_co_nguoi_tao = True
+        
+        if self.da_co_admin and self.da_co_nguoi_tao:
             await tuong_tac.response.send_message("✅ Đơn đã hoàn thành! Đang đóng...", ephemeral=True)
             await gui_nhat_ky_don(tuong_tac.client, self.so_don, self.id_nguoi_tao, tuong_tac.user.mention, self.loai_dich_vu, "Đơn đã hoàn thành")
             await self.kenh.delete()
         else:
-            await tuong_tac.response.send_message(f"✅ Đã ghi nhận! Cần thêm **1** người nữa xác nhận.", ephemeral=True)
+            con_thieu = []
+            if not self.da_co_admin:
+                con_thieu.append("**Quản trị/Điều hành**")
+            if not self.da_co_nguoi_tao:
+                con_thieu.append("**Người tạo đơn**")
+            
+            await tuong_tac.response.send_message(f"✅ Đã ghi nhận! Cần thêm {' và '.join(con_thieu)} xác nhận.", ephemeral=True)
     
     @discord.ui.button(label="❌ Hủy", style=discord.ButtonStyle.grey)
     async def huy(self, tuong_tac: discord.Interaction, nut: discord.ui.Button):
-        if not la_quan_tri_hoac_dieu_hanh(tuong_tac.user):
-            return await tuong_tac.response.send_message("❌ Chỉ Quản trị/Điều hành mới có quyền!", ephemeral=True)
+        nguoi_dung = tuong_tac.user
+        la_admin = la_quan_tri_hoac_dieu_hanh(nguoi_dung)
+        la_nguoi_tao = str(nguoi_dung.id) == str(self.id_nguoi_tao)
+        
+        if not la_admin and not la_nguoi_tao:
+            return await tuong_tac.response.send_message("❌ Chỉ Quản trị/Điều hành hoặc Người tạo đơn mới có quyền!", ephemeral=True)
         
         await tuong_tac.message.delete()
         await tuong_tac.response.send_message("❌ Đã hủy!", ephemeral=True)
@@ -457,8 +497,7 @@ class DieuKhienDon(discord.ui.View):
     
     @discord.ui.button(label="✅ Hoàn thành đơn", style=discord.ButtonStyle.green, custom_id="hoan_thanh_don")
     async def hoan_thanh(self, tuong_tac: discord.Interaction, nut: discord.ui.Button):
-        if not la_quan_tri_hoac_dieu_hanh(tuong_tac.user):
-            return await tuong_tac.response.send_message("❌ Chỉ Quản trị/Điều hành mới có quyền!", ephemeral=True)
+        nguoi_dung = tuong_tac.user
         
         ten_kenh = tuong_tac.channel.name
         phan = ten_kenh.split("-")
@@ -471,9 +510,15 @@ class DieuKhienDon(discord.ui.View):
             id_nguoi_tao = du_lieu_chu_de
             loai_dich_vu = "Không xác định"
         
+        la_admin = la_quan_tri_hoac_dieu_hanh(nguoi_dung)
+        la_nguoi_tao = str(nguoi_dung.id) == str(id_nguoi_tao)
+        
+        if not la_admin and not la_nguoi_tao:
+            return await tuong_tac.response.send_message("❌ Chỉ Quản trị/Điều hành hoặc Người tạo đơn mới có quyền!", ephemeral=True)
+        
         bang = discord.Embed(
             title="✅ HOÀN THÀNH ĐƠN",
-            description=f"**Cần 2 Quản trị/Điều hành xác nhận** để hoàn thành đơn **#{so_don}**",
+            description=f"**Cần Quản trị/Điều hành VÀ Người tạo đơn xác nhận** để hoàn thành đơn **#{so_don}**",
             color=0x00ff00
         )
         await tuong_tac.response.send_message(embed=bang, view=BinhChonHoanThanh(tuong_tac.channel, so_don, id_nguoi_tao, loai_dich_vu), ephemeral=False)
@@ -613,7 +658,6 @@ class Bot(discord.Client):
         print(f"🚀 Bot sẵn sàng! Đơn tiếp theo: {dem_don + 1}")
     
     async def bang_dieu_khien(self):
-        # Kênh kiểm tra giá
         kenh_kiem_tra = self.get_channel(ID_KENH_KIEM_TRA)
         if kenh_kiem_tra:
             async for tin in kenh_kiem_tra.history(limit=50):
@@ -632,7 +676,6 @@ class Bot(discord.Client):
             bang_kiem_tra.set_footer(text=gio_vn().strftime('%H:%M:%S | %d-%m-%Y'))
             await kenh_kiem_tra.send(embed=bang_kiem_tra, view=GiaoDienKiemTraGia())
         
-        # Kênh tạo đơn
         kenh_don = self.get_channel(ID_KENH_DON)
         if kenh_don:
             async for tin in kenh_don.history(limit=50):
@@ -648,7 +691,6 @@ class Bot(discord.Client):
                 view=GiaoDienTaoDon()
             )
         
-        # Kênh phản ứng nhận vai trò
         global id_tin_nhan_phan_ung
         kenh_phan_ung = self.get_channel(ID_KENH_PHAN_UNG)
         if kenh_phan_ung:
@@ -712,7 +754,6 @@ class Bot(discord.Client):
             print("❌ Không tìm thấy máy chủ nào!")
     
     async def on_raw_reaction_add(self, du_lieu):
-        """Khi ai đó thả biểu tượng"""
         global id_tin_nhan_phan_ung
         
         if du_lieu.message_id != id_tin_nhan_phan_ung:
@@ -740,7 +781,6 @@ class Bot(discord.Client):
             print(f"❌ Lỗi gán vai trò: {e}")
     
     async def on_raw_reaction_remove(self, du_lieu):
-        """Khi ai đó gỡ biểu tượng"""
         global id_tin_nhan_phan_ung
         
         if du_lieu.message_id != id_tin_nhan_phan_ung:
