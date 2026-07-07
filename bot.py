@@ -64,6 +64,8 @@ ID_VAI_TRO_PHAN_UNG = 1523599853882703882
 # EMOJI - SẼ TỰ ĐỘNG NẠP TỪ SERVER
 EMOJI_CANH1 = "✨"
 EMOJI_CANH2 = "✨"
+EMOJI_BLINK2 = "✨"
+EMOJI_BLINKK = "🔹"
 EMOJI_TRON = "🔹"
 EMOJI_COIN = "💰"
 BIEU_TUONG_PHAN_UNG = "✅"
@@ -82,7 +84,7 @@ cac_map_da_gui = set()
 
 # ===== NẠP EMOJI TỰ ĐỘNG =====
 def nap_emoji_tu_may_chu(bot):
-    global EMOJI_CANH1, EMOJI_CANH2, EMOJI_TRON, EMOJI_COIN, BIEU_TUONG_PHAN_UNG
+    global EMOJI_CANH1, EMOJI_CANH2, EMOJI_BLINK2, EMOJI_BLINKK, EMOJI_TRON, EMOJI_COIN, BIEU_TUONG_PHAN_UNG
     
     may_chu = bot.get_guild(ID_MAY_CHU)
     if not may_chu:
@@ -646,7 +648,6 @@ class Bot(discord.Client):
     
     async def on_ready(self):
         nap_emoji_tu_may_chu(self)
-        await nap_du_lieu_tu_dm(self)
         await self.bang_dieu_khien()
         self.vong_lap_quet.start()
         print(f"🚀 Bot sẵn sàng! Đơn tiếp theo: {dem_don + 1}")
@@ -825,23 +826,22 @@ class Bot(discord.Client):
         nhac_quan_tri = f"<@&{ID_QUAN_TRI}>"
         nhac_dieu_hanh = f"<@&{ID_DIEU_HANH}>"
         
-        # Bỏ title, dùng description làm welcome
         bang = discord.Embed(color=0x2ecc71)
         bang.description = (
             f"# {EMOJI_CANH1} CHÀO MỪNG THÀNH VIÊN MỚI {EMOJI_CANH2}\n"
             "━━━━━━━━━━━━━━━━━━━━━━\n"
             f"# {EMOJI_TRON}┆THÔNG TIN CỦA BẠN:\n"
-            f"ㆍ{EMOJI_BLINKK} *Tên*: {thanh_vien.mention}\n"
-            f"ㆍ{EMOJI_BLINKK} *Người dùng*: {thanh_vien.name}\n"
-            f"ㆍ{EMOJI_BLINKK} *ID*: {thanh_vien.id}\n"
-            f"ㆍ{EMOJI_BLINKK} *Ngày tạo*: {thanh_vien.created_at.strftime('%d-%m-%Y')}\n"
+            f"{EMOJI_BLINKK} *Tên*: {thanh_vien.mention}\n"
+            f"{EMOJI_BLINKK} *Người dùng*: {thanh_vien.name}\n"
+            f"{EMOJI_BLINKK} *ID*: {thanh_vien.id}\n"
+            f"{EMOJI_BLINKK} *Ngày tạo*: {thanh_vien.created_at.strftime('%d-%m-%Y')}\n"
             "━━━━━━━━━━━━━━━━━━━━━━\n"
             f"# {EMOJI_TRON}┆CỬA HÀNG PAWPAW:\n"
-            f"{EMOJI_BLINKK}ㆍChào mừng bạn đã đến với {may_chu.name}!\n"
-            f"{EMOJI_BLINKK}ㆍBạn là thành viên thứ {may_chu.member_count} của {may_chu.name}\n"
-            f"{EMOJI_BLINKK}ㆍNếu thắc mắc và cần hỗ trợ, hãy liên hệ {nhac_quan_tri} và {nhac_dieu_hanh}.\n"
-            f"{EMOJI_BLINKK}ㆍNếu muốn tham gia các kênh trò chuyện, hãy vào kênh <#{ID_KENH_PHAN_UNG}> để nhận vai trò.\n\n"
-            "{EMOJI_BLINK2}{EMOJI_BLINK2}CHÚC BẠN MỘT NGÀY TỐT LÀNH{EMOJI_BLINK2}{EMOJI_BLINK2}"
+            f"{EMOJI_BLINKK} Chào mừng bạn đã đến với {may_chu.name}!\n"
+            f"{EMOJI_BLINKK} Bạn là thành viên thứ {may_chu.member_count} của {may_chu.name}\n"
+            f"{EMOJI_BLINKK} Nếu thắc mắc và cần hỗ trợ, hãy liên hệ {nhac_quan_tri} và {nhac_dieu_hanh}.\n"
+            f"{EMOJI_BLINKK} Nếu muốn tham gia các kênh trò chuyện, hãy vào kênh <#{ID_KENH_PHAN_UNG}> để nhận vai trò.\n\n"
+            f"{EMOJI_BLINK2}{EMOJI_BLINK2} CHÚC BẠN MỘT NGÀY TỐT LÀNH {EMOJI_BLINK2}{EMOJI_BLINK2}"
         )
         bang.set_thumbnail(url=thanh_vien.display_avatar.url)
         bang.set_image(url=ANH_CHAO_MUNG)
