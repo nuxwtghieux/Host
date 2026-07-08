@@ -521,15 +521,30 @@ class Bot(discord.Client):
         if kkt:
             async for t in kkt.history(limit=50):
                 if t.author==self.user: await t.delete()
-            b=discord.Embed(title="‼️ HƯỚNG DẪN CHECK GIÁ 📍", description="Nhấn nút bên dưới để kiểm tra giá!", color=0x3498db)
-            b.set_footer(text=gio_vn().strftime('%H:%M:%S | %d-%m-%Y'))
+            bang_kiem_tra = discord.Embed(
+            title="‼️ HƯỚNG DẪN KIỂM TRA GIÁ 📍",
+            description="━━━━━━━━━━━━━━━━━━━━━━\n"
+                       "📌 BƯỚC 1ㆍNhấn '💰 Tiền Divaz → VND' hoặc '💅 Slay → VND' để xem giá.\n\n"
+                       "📌 BƯỚC 2ㆍNhập số tiền/slay bạn muốn cày (VD: 100.000K, 2000 slay).\n\n"
+                       "📌 BƯỚC 3ㆍSau đó 'gửi' sẽ biết ngay số tiền phải trả.\n\n"
+                       "💡 **Nút phụ:** '💵 VND → Tiền cày' và '💳 VND → Slay' để tính ngược từ VND.",
+            color=0x3498db
+        )
+            bang_kiem_tra.set_footer(text=gio_vn().strftime('%H:%M:%S | %d-%m-%Y'))
             await kkt.send(embed=b, view=GiaoDienKiemTraGia())
         
         kd=self.get_channel(ID_KENH_DON)
         if kd:
             async for t in kd.history(limit=50):
                 if t.author==self.user: await t.delete()
-            await kd.send(embed=discord.Embed(title="🛒 DỊCH VỤ", description="Tạo đơn bên dưới!", color=0x3498db), view=GiaoDienTaoDon())
+            await kenh_don.send(
+            embed=discord.Embed(
+                title="🛒 DỊCH VỤ CÀY TIỀN & SLAY",
+                description="━━━━━━━━━━━━━━━━━━━━━━\n✅ HÃY TẠO ĐƠN Ở NÚT BÊN DƯỚI NẾU BẠN CÓ NHU CẦU CẦN CÀY TIỀN HOẶC SLAY DIVAZ 💤",
+                color=0x3498db
+            ),
+            view=GiaoDienTaoDon()
+        )
         
         global id_tin_nhan_phan_ung
         kpu=self.get_channel(ID_KENH_PHAN_UNG)
@@ -544,12 +559,18 @@ class Bot(discord.Client):
             else:
                 async for t in kpu.history(limit=50):
                     if t.author==self.user: await t.delete()
-                b=discord.Embed(title="🎭 NHẬN VAI TRÒ", description="✅ **TICK VÀO BÊN DƯỚI ĐỂ XEM KÊNH CHAT ↓**", color=0x9b59b6)
-                b.set_footer(text="BotByPawPaw")
+                bang_vai_tro = discord.Embed(
+                title="🎭 GET ROLE MEMBER",
+                description="━━━━━━━━━━━━━━━━━━━━━━\n"
+                       "🌟**ĐỂ XEM CÁC KÊNH CHAT VÀ CHAT, HÃY TICK VÀO BÊN DƯỚI ĐỂ ĐƯỢC NHẬN ROLE↓**\n"
+                       "━━━━━━━━━━━━━━━━━━━━━━",
+                color=0x9b59b6
+        )
+                bang_vai_tro.set_footer(text="BotByPawPaw")
                 tn=await kpu.send(embed=b); await tn.add_reaction(BIEU_TUONG_PHAN_UNG)
                 id_tin_nhan_phan_ung=tn.id
     
-    @tasks.loop(seconds=180)
+    @tasks.loop(seconds=360)
     async def vong_lap_quet(self):
         global dang_quet, cac_map_da_gui
         if not dang_quet: return
