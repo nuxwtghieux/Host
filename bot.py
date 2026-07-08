@@ -83,7 +83,6 @@ def lam_tron_the(ngan_hang):
 
 def lam_tron_ngan_hang(ngan_hang): return int(round(ngan_hang / 1000) * 1000)
 
-# ===== HÀM KIỂM TRA QUYỀN (NHẬN INTERACTION) =====
 def la_quan_tri(tt: discord.Interaction):
     tv = tt.user
     if tv.guild_permissions.administrator: return True
@@ -216,8 +215,8 @@ async def cap_nhat_event():
     global msg_event
     if not msg_event: return
     ds = "\n".join([f"**{i}.** **{u}** (<@{uid}>)" for i,(uid,u) in enumerate(nguoi_tham_gia.items(),1)]) if nguoi_tham_gia else "Chưa có ai!"
-    tt = "✅ ĐANG MỞ" if cho_phep_tham_gia else "⏸️ ĐÃ DỪNG"
-    embed = discord.Embed(title="⚔️ EVENT DIVAZ ĐẤU 1VS1 ⚔️", description=f"ㆍ**{len(nguoi_tham_gia)}** người tham gia.\nㆍTrạng thái: **{tt}**\n\nㆍNhấn '💅Tham gia' bên dưới.", color=0xff0000)
+    tt_text = "✅ ĐANG MỞ" if cho_phep_tham_gia else "⏸️ ĐÃ DỪNG"
+    embed = discord.Embed(title="⚔️ EVENT DIVAZ ĐẤU 1VS1 ⚔️", description=f"ㆍ**{len(nguoi_tham_gia)}** người tham gia.\nㆍTrạng thái: **{tt_text}**\n\nㆍNhấn '💅Tham gia' bên dưới.", color=0xff0000)
     embed.add_field(name="📋 DANH SÁCH:", value=ds, inline=False)
     embed.set_footer(text="BotByPawPaw")
     await msg_event.edit(embed=embed)
@@ -301,7 +300,7 @@ async def gui_ket_qua(ut):
     embed.add_field(name="🎮 UserGame:", value=f"```{tr}```", inline=False)
     embed.add_field(name="⏰ Time:", value=now.strftime('%H:%M:%S | %d/%m/%Y'), inline=False)
     embed.set_footer(text="BotByPawPaw")
-    await kq.send(embed=embed)
+    await kq.send(content="@everyone", embed=embed)
 
 async def bat_dau_event(tt):
     global cho_phep_tham_gia; cho_phep_tham_gia = False
@@ -352,7 +351,7 @@ class BinhChonHoanThanh(discord.ui.View):
             await gui_nhat_ky_don(tt.client, self.sd, self.id_nt, tt.user.mention, self.ldv, "Đơn đã hoàn thành")
             await self.k.delete()
         else:
-            ct=[]; 
+            ct=[]
             if not self.dca: ct.append("Admin/Mod")
             if not self.dcnt: ct.append("Người tạo")
             await tt.response.send_message(f"✅ Cần thêm {' và '.join(ct)}!", ephemeral=True)
@@ -450,7 +449,7 @@ async def startev(tt):
     embed=discord.Embed(title="⚔️ EVENT DIVAZ ĐẤU 1VS1 ⚔️", description="ㆍ**0** người tham gia.\nㆍTrạng thái: **✅ ĐANG MỞ**\n\nㆍNhấn '💅Tham gia' bên dưới.", color=0xff0000)
     embed.add_field(name="📋 DANH SÁCH:", value="Chưa có ai!", inline=False)
     embed.set_footer(text="BotByPawPaw")
-    msg_event=await k.send(embed=embed, view=NutEventChinh())
+    msg_event=await k.send(content="@everyone", embed=embed, view=NutEventChinh())
     await tt.response.send_message("✅ Event đã bắt đầu!", ephemeral=True)
 
 @discord.app_commands.command(name="stopev", description="⏸️ Dừng event")
