@@ -117,12 +117,21 @@ class BangKiemTraTien(discord.ui.Modal, title="Kiểm tra giá tiền"):
         except: return await tt.response.send_message("❌ Số không hợp lệ!", ephemeral=True)
         nhg = lam_tron_ngan_hang(int(tien*0.12)); tg = lam_tron_the(nhg)
         nhgiam = tinh_giam_gia(nhg, tt); tgiam = tinh_giam_gia(tg, tt); vip = la_vip_nd(tt); now = gio_vn()
-        bang = discord.Embed(title=f"{EMOJI_COIN} GIÁ CÀY TIỀN {EMOJI_COIN}", color=0x3498db)
-        mt = f"\n━━━━━━━━━━━━━━\n{EMOJI_COIN}ㆍ**Số tiền:** **{tien:,}**\n━━━━━━━━━━━━━━\n{EMOJI_COIN}ㆍ**Bank:** {dinh_dang_gia(nhg, nhgiam, vip)}\n━━━━━━━━━━━━━━\n{EMOJI_COIN}ㆍ**Card:** {dinh_dang_gia(tg, tgiam, vip)}\n━━━━━━━━━━━━━━\n"
-        if vip: mt += f"\n👑 {tt.user.mention} được giảm **3%**!\n"
-        mt += "\n‼️ **ÁP MÃ GIẢM GIÁ** ‼️"
-        bang.description = mt; bang.set_image(url=ANH_GIF)
-        bang.set_footer(text=f"{now.strftime('%H:%M:%S | %d-%m-%Y')} | {tt.user.display_name}")
+        bang = discord.Embed(title=f"💰 GIÁ CÀY TIỀN HIỆN TẠI 💰", color=0x3498db)
+        mo_ta = (
+            "\n━━━━━━━━━━━━━━━━━━━━━━\n"
+            f"💵ㆍ**Số tiền cần cày:** **{tien:,} TIỀN**\n"
+            "━━━━━━━━━━━━━━━━━━━━━━\n"
+            f"💳ㆍ**Chuyển khoản (Bank):** {dinh_dang_gia(ngan_hang_goc, ngan_hang_giam, vip)}\n"
+            "━━━━━━━━━━━━━━━━━━━━━━\n"
+            f"🔖ㆍ**Thẻ cào (Card):** {dinh_dang_gia(the_goc, the_giam, vip)}\n"
+            "━━━━━━━━━━━━━━━━━━━━━━\n"
+        )
+        if vip: mo_ta += f"\n👑 {tuong_tac.user.mention}, bạn là **Thành viên VIP** nên được giảm **3%**!\n"
+        mo_ta += "\n‼️ **ÁP MÃ GIẢM GIÁ SẼ ĐƯỢC GIẢM TÙY THEO MÃ** ‼️"
+        bang.description = mo_ta
+        bang.set_image(url=ANH_GIF)
+        bang.set_footer(text=f"{bay_gio.strftime('%H:%M:%S | %d-%m-%Y')} | {tuong_tac.user.display_name}")
         await tt.response.send_message(embed=bang, ephemeral=True)
 
 class BangKiemTraSlay(discord.ui.Modal, title="Kiểm tra giá slay"):
@@ -134,12 +143,21 @@ class BangKiemTraSlay(discord.ui.Modal, title="Kiểm tra giá slay"):
         if nhg > 8000: ct = dinh_dang_gia(lam_tron_the(nhg), tinh_giam_gia(lam_tron_the(nhg), tt), vip)
         else: ct = "Chỉ nhận card từ 400 SLAY!"
         nhgiam = tinh_giam_gia(nhg, tt); now = gio_vn()
-        bang = discord.Embed(title=f"{EMOJI_COIN} GIÁ CÀY SLAY {EMOJI_COIN}", color=0x3498db)
-        mt = f"\n━━━━━━━━━━━━━━\n{EMOJI_COIN}ㆍ**Số slay:** **{slay:,}**\n━━━━━━━━━━━━━━\n{EMOJI_COIN}ㆍ**Bank:** {dinh_dang_gia(nhg, nhgiam, vip)}\n━━━━━━━━━━━━━━\n{EMOJI_COIN}ㆍ**Card:** {ct}\n━━━━━━━━━━━━━━\n"
-        if vip: mt += f"\n👑 {tt.user.mention} được giảm **3%**!\n"
-        mt += "\n‼️ **ÁP MÃ GIẢM GIÁ** ‼️"
-        bang.description = mt; bang.set_image(url=ANH_GIF)
-        bang.set_footer(text=f"{now.strftime('%H:%M:%S | %d-%m-%Y')} | {tt.user.display_name}")
+        bang = discord.Embed(title=f"💅 GIÁ CÀY SLAY HIỆN TẠI 💅", color=0x3498db)
+        mo_ta = (
+            "\n━━━━━━━━━━━━━━━━━━━━━━\n"
+            f"💅ㆍ**Số slay cần cày:** **{slay:,} SLAY**\n"
+            "━━━━━━━━━━━━━━━━━━━━━━\n"
+            f"💳ㆍ**Chuyển khoản (Bank):** {dinh_dang_gia(ngan_hang_goc, ngan_hang_giam, vip)}\n"
+            "━━━━━━━━━━━━━━━━━━━━━━\n"
+            f"🔖ㆍ**Thẻ cào (Card):** {chuoi_the}\n"
+            "━━━━━━━━━━━━━━━━━━━━━━\n"
+        )
+        if vip: mo_ta += f"\n👑 {tuong_tac.user.mention}, bạn là **Thành viên VIP** nên được giảm **3%**!\n"
+        mo_ta += "\n‼️ **ÁP MÃ GIẢM GIÁ SẼ ĐƯỢC GIẢM TÙY THEO MÃ** ‼️"
+        bang.description = mo_ta
+        bang.set_image(url=ANH_GIF)
+        bang.set_footer(text=f"{bay_gio.strftime('%H:%M:%S | %d-%m-%Y')} | {tuong_tac.user.display_name}")
         await tt.response.send_message(embed=bang, ephemeral=True)
 
 class BangVndSangTien(discord.ui.Modal, title="VND → Tiền cần cày"):
@@ -149,12 +167,21 @@ class BangVndSangTien(discord.ui.Modal, title="VND → Tiền cần cày"):
         except: return await tt.response.send_message("❌ Số không hợp lệ!", ephemeral=True)
         vsg = tinh_giam_gia(vnd, tt); tien = int(vsg/0.12); nhg = lam_tron_ngan_hang(vnd)
         nhgiam = tinh_giam_gia(nhg, tt); tg = lam_tron_the(nhg); tgiam = tinh_giam_gia(tg, tt); vip = la_vip_nd(tt); now = gio_vn()
-        bang = discord.Embed(title=f"{EMOJI_COIN} SỐ TIỀN NHẬN ĐƯỢC {EMOJI_COIN}", color=0xe67e22)
-        mt = f"\n━━━━━━━━━━━━━━\n{EMOJI_COIN}ㆍ**VND trả:** **{vnd:,}**\n━━━━━━━━━━━━━━\n{EMOJI_COIN}ㆍ**Tiền nhận:** **{tien:,}**\n━━━━━━━━━━━━━━\n{EMOJI_COIN}ㆍ**Card:** {dinh_dang_gia(tg, tgiam, vip)}\n━━━━━━━━━━━━━━\n"
-        if vip: mt += f"\n👑 {tt.user.mention} được giảm **3%**!\n"
-        mt += "\n‼️ **ÁP MÃ GIẢM GIÁ** ‼️"
-        bang.description = mt; bang.set_image(url=ANH_GIF)
-        bang.set_footer(text=f"{now.strftime('%H:%M:%S | %d-%m-%Y')} | {tt.user.display_name}")
+        bang = discord.Embed(title=f"💵 SỐ TIỀN CÀY BẠN NHẬN ĐƯỢC 💵", color=0xe67e22)
+        mo_ta = (
+            "\n━━━━━━━━━━━━━━━━━━━━━━\n"
+            f"💳ㆍ**Số VND bạn trả:** **{vnd:,} VND**\n"
+            "━━━━━━━━━━━━━━━━━━━━━━\n"
+            f"💰ㆍ**Số tiền cày bạn nhận được:** **{tien_nhan:,} TIỀN**\n"
+            "━━━━━━━━━━━━━━━━━━━━━━\n"
+            f"🔖ㆍ**Thẻ cào (Card):** {dinh_dang_gia(the_goc, the_giam, vip)}\n"
+            "━━━━━━━━━━━━━━━━━━━━━━\n"
+        )
+        if vip: mo_ta += f"\n👑 {tuong_tac.user.mention}, bạn là **Thành viên VIP** nên được giảm **3%**!\n"
+        mo_ta += "\n‼️ **ÁP MÃ GIẢM GIÁ SẼ ĐƯỢC GIẢM TÙY THEO MÃ** ‼️"
+        bang.description = mo_ta
+        bang.set_image(url=ANH_GIF)
+        bang.set_footer(text=f"{bay_gio.strftime('%H:%M:%S | %d-%m-%Y')} | {tuong_tac.user.display_name}")
         await tt.response.send_message(embed=bang, ephemeral=True)
 
 class BangVndSangSlay(discord.ui.Modal, title="VND → Slay"):
@@ -166,12 +193,21 @@ class BangVndSangSlay(discord.ui.Modal, title="VND → Slay"):
         nhgiam = tinh_giam_gia(nhg, tt); vip = la_vip_nd(tt)
         if nhg > 8000: ct = dinh_dang_gia(lam_tron_the(nhg), tinh_giam_gia(lam_tron_the(nhg), tt), vip)
         else: ct = "Chỉ nhận card từ 400 SLAY!"; now = gio_vn()
-        bang = discord.Embed(title="💅 SỐ SLAY NHẬN ĐƯỢC 💅", color=0x9b59b6)
-        mt = f"\n━━━━━━━━━━━━━━\n💳ㆍ**VND trả:** **{vnd:,}**\n━━━━━━━━━━━━━━\n💅ㆍ**Slay nhận:** **{slay:,}**\n━━━━━━━━━━━━━━\n🔖ㆍ**Card:** {ct}\n━━━━━━━━━━━━━━\n"
-        if vip: mt += f"\n👑 {tt.user.mention} được giảm **3%**!\n"
-        mt += "\n‼️ **ÁP MÃ GIẢM GIÁ** ‼️"
-        bang.description = mt; bang.set_image(url=ANH_GIF)
-        bang.set_footer(text=f"{now.strftime('%H:%M:%S | %d-%m-%Y')} | {tt.user.display_name}")
+        bang = discord.Embed(title=f"💅 SỐ SLAY BẠN NHẬN ĐƯỢC 💅", color=0x9b59b6)
+        mo_ta = (
+            "\n━━━━━━━━━━━━━━━━━━━━━━\n"
+            f"💳ㆍ**Số VND bạn trả:** **{vnd:,} VND**\n"
+            "━━━━━━━━━━━━━━━━━━━━━━\n"
+            f"💅ㆍ**Số slay bạn nhận được:** **{slay:,} SLAY**\n"
+            "━━━━━━━━━━━━━━━━━━━━━━\n"
+            f"🔖ㆍ**Thẻ cào (Card):** {chuoi_the}\n"
+            "━━━━━━━━━━━━━━━━━━━━━━\n"
+        )
+        if vip: mo_ta += f"\n👑 {tuong_tac.user.mention}, bạn là **Thành viên VIP** nên được giảm **3%**!\n"
+        mo_ta += "\n‼️ **ÁP MÃ GIẢM GIÁ SẼ ĐƯỢC GIẢM TÙY THEO MÃ** ‼️"
+        bang.description = mo_ta
+        bang.set_image(url=ANH_GIF)
+        bang.set_footer(text=f"{bay_gio.strftime('%H:%M:%S | %d-%m-%Y')} | {tuong_tac.user.display_name}")
         await tt.response.send_message(embed=bang, ephemeral=True)
 
 class BangTaoDon(discord.ui.Modal, title="Tạo đơn"):
@@ -561,10 +597,26 @@ class Bot(discord.Client):
         k=self.get_channel(ID_KENH_CHAO_MUNG)
         if not k: return
         now=gio_vn(); mc=tv.guild
-        b=discord.Embed(color=0x2ecc71)
-        b.description=f"# {EMOJI_CANH1} CHÀO MỪNG {EMOJI_CANH2}\n━━━━━━━━━━━━━━\n# {EMOJI_TRON} THÔNG TIN:\n{EMOJI_BLINKK} Tên: {tv.mention}\n{EMOJI_BLINKK} ID: {tv.id}\n━━━━━━━━━━━━━━\n# {EMOJI_TRON} PAWPAW:\n{EMOJI_BLINKK} Member thứ {mc.member_count}\n{EMOJI_BLINKK} Vào <#{ID_KENH_PHAN_UNG}> để get role!\n\n{EMOJI_BLINK2}{EMOJI_BLINK2} GOOD DAY {EMOJI_BLINK2}{EMOJI_BLINK2}"
-        b.set_thumbnail(url=tv.display_avatar.url); b.set_image(url=ANH_CHAO_MUNG)
-        b.set_footer(text=now.strftime('%H:%M:%S | %d-%m-%Y'))
+        bang = discord.Embed(color=0x2ecc71)
+        bang.description = (
+            f"# {EMOJI_CANH1}WELCOME{EMOJI_CANH2}\n"
+            "━━━━━━━━━━━━━━━━━━━━━━\n"
+            f"# {EMOJI_TRON}┆THÔNG TIN CỦA BẠN:\n"
+            f"{EMOJI_BLINKK} *Tên*: {thanh_vien.mention}\n"
+            f"{EMOJI_BLINKK} *Người dùng*: {thanh_vien.name}\n"
+            f"{EMOJI_BLINKK} *ID*: {thanh_vien.id}\n"
+            f"{EMOJI_BLINKK} *Ngày tạo*: {thanh_vien.created_at.strftime('%d-%m-%Y')}\n"
+            "━━━━━━━━━━━━━━━━━━━━━━\n"
+            f"# {EMOJI_TRON}┆CỬA HÀNG PAWPAW:\n"
+            f"{EMOJI_BLINKK} Chào mừng bạn đã đến với {may_chu.name}!\n"
+            f"{EMOJI_BLINKK} Bạn là thành viên thứ {may_chu.member_count} của {may_chu.name}\n"
+            f"{EMOJI_BLINKK} Nếu thắc mắc và cần hỗ trợ, hãy liên hệ {nhac_quan_tri} và {nhac_dieu_hanh}.\n"
+            f"{EMOJI_BLINKK} Nếu muốn tham gia các kênh trò chuyện, hãy vào kênh <#{ID_KENH_PHAN_UNG}> để nhận vai trò.\n\n"
+            f"{EMOJI_BLINK2}{EMOJI_BLINK2} CHÚC BẠN MỘT NGÀY TỐT LÀNH {EMOJI_BLINK2}{EMOJI_BLINK2}"
+        )
+        bang.set_thumbnail(url=thanh_vien.display_avatar.url)
+        bang.set_image(url=ANH_CHAO_MUNG)
+        bang.set_footer(text=bay_gio.strftime('%H:%M:%S | %d-%m-%Y'))
         await k.send(embed=b)
     
     async def on_member_remove(self, tv):
