@@ -579,18 +579,54 @@ async def cap_nhat_event():
         print(f"❌ Lỗi cap_nhat_event: {e}")
         traceback.print_exc()
 
-# ===== NÚT EVENT CHÍNH =====
+# ===== NÚT EVENT CHÍNH (FIX LỖI custom_id) =====
 class NutEventChinh(discord.ui.View):
     def __init__(self):
         super().__init__(timeout=None)
 
-        self.add_item(discord.ui.Button(label="💅 Tham gia", style=discord.ButtonStyle.green, custom_id="tham_gia_ev"))
-        self.add_item(discord.ui.Button(label="🚪 Rời đi", style=discord.ButtonStyle.red, custom_id="roi_ev", row=1))
-        self.add_item(discord.ui.Button(label="👑 Tham gia", style=discord.ButtonStyle.green, custom_id="admin_tham_gia_ev", row=2))
-        self.add_item(discord.ui.Button(label="📋 Quản lý", style=discord.ButtonStyle.blurple, custom_id="quan_ly_ev", row=2))
-        self.add_item(discord.ui.Button(label="▶️ Bắt đầu", style=discord.ButtonStyle.green, custom_id="bat_dau_ev", row=3))
-        self.add_item(discord.ui.Button(label="⏸️ Đóng/Mở", style=discord.ButtonStyle.red, custom_id="dung_mo_ev", row=3))
-        self.add_item(discord.ui.Button(label="❌ Hủy Event", style=discord.ButtonStyle.red, custom_id="huy_ev", row=4))
+        # HÀNG 0: 1 nút
+        self.add_item(discord.ui.Button(
+            label="💅 Tham gia",
+            style=discord.ButtonStyle.green
+        ))
+
+        # HÀNG 1: 1 nút
+        self.add_item(discord.ui.Button(
+            label="🚪 Rời đi",
+            style=discord.ButtonStyle.red,
+            row=1
+        ))
+
+        # HÀNG 2: 2 nút Admin
+        self.add_item(discord.ui.Button(
+            label="👑 Tham gia",
+            style=discord.ButtonStyle.green,
+            row=2
+        ))
+        self.add_item(discord.ui.Button(
+            label="📋 Quản lý",
+            style=discord.ButtonStyle.blurple,
+            row=2
+        ))
+
+        # HÀNG 3: 2 nút Admin
+        self.add_item(discord.ui.Button(
+            label="▶️ Bắt đầu",
+            style=discord.ButtonStyle.green,
+            row=3
+        ))
+        self.add_item(discord.ui.Button(
+            label="⏸️ Đóng/Mở",
+            style=discord.ButtonStyle.red,
+            row=3
+        ))
+
+        # HÀNG 4: 1 nút Admin
+        self.add_item(discord.ui.Button(
+            label="❌ Hủy Event",
+            style=discord.ButtonStyle.red,
+            row=4
+        ))
 
     async def interaction_check(self, interaction):
         try:
@@ -622,7 +658,7 @@ class NutEventChinh(discord.ui.View):
             await interaction.response.send_message("❌ Đã xảy ra lỗi!", ephemeral=True)
             return False
 
-    @discord.ui.button(label="💅 Tham gia", style=discord.ButtonStyle.green, custom_id="tham_gia_ev")
+    @discord.ui.button(label="💅 Tham gia", style=discord.ButtonStyle.green)
     async def tham_gia(self, tt, n):
         try:
             if not event_active:
@@ -637,7 +673,7 @@ class NutEventChinh(discord.ui.View):
             traceback.print_exc()
             await tt.response.send_message("❌ Đã xảy ra lỗi!", ephemeral=True)
 
-    @discord.ui.button(label="🚪 Rời đi", style=discord.ButtonStyle.red, custom_id="roi_ev")
+    @discord.ui.button(label="🚪 Rời đi", style=discord.ButtonStyle.red, row=1)
     async def roi(self, tt, n):
         try:
             if tt.user.id not in nguoi_tham_gia:
@@ -652,7 +688,7 @@ class NutEventChinh(discord.ui.View):
             traceback.print_exc()
             await tt.response.send_message("❌ Đã xảy ra lỗi!", ephemeral=True)
 
-    @discord.ui.button(label="👑 Tham gia", style=discord.ButtonStyle.green, custom_id="admin_tham_gia_ev")
+    @discord.ui.button(label="👑 Tham gia", style=discord.ButtonStyle.green, row=2)
     async def admin_tham_gia(self, tt, n):
         try:
             await tt.response.send_modal(FormThamGia())
@@ -661,7 +697,7 @@ class NutEventChinh(discord.ui.View):
             traceback.print_exc()
             await tt.response.send_message("❌ Đã xảy ra lỗi!", ephemeral=True)
 
-    @discord.ui.button(label="📋 Quản lý", style=discord.ButtonStyle.blurple, custom_id="quan_ly_ev")
+    @discord.ui.button(label="📋 Quản lý", style=discord.ButtonStyle.blurple, row=2)
     async def quan_ly(self, tt, n):
         try:
             view = SuaDSView()
@@ -671,7 +707,7 @@ class NutEventChinh(discord.ui.View):
             traceback.print_exc()
             await tt.response.send_message("❌ Đã xảy ra lỗi!", ephemeral=True)
 
-    @discord.ui.button(label="▶️ Bắt đầu", style=discord.ButtonStyle.green, custom_id="bat_dau_ev")
+    @discord.ui.button(label="▶️ Bắt đầu", style=discord.ButtonStyle.green, row=3)
     async def bat_dau(self, tt, n):
         try:
             if len(nguoi_tham_gia) < 2:
@@ -688,7 +724,7 @@ class NutEventChinh(discord.ui.View):
             traceback.print_exc()
             await tt.response.send_message("❌ Đã xảy ra lỗi!", ephemeral=True)
 
-    @discord.ui.button(label="⏸️ Đóng/Mở", style=discord.ButtonStyle.red, custom_id="dung_mo_ev")
+    @discord.ui.button(label="⏸️ Đóng/Mở", style=discord.ButtonStyle.red, row=3)
     async def dong_mo(self, tt, n):
         try:
             global cho_phep_tham_gia
@@ -701,7 +737,7 @@ class NutEventChinh(discord.ui.View):
             traceback.print_exc()
             await tt.response.send_message("❌ Đã xảy ra lỗi!", ephemeral=True)
 
-    @discord.ui.button(label="❌ Hủy Event", style=discord.ButtonStyle.red, custom_id="huy_ev")
+    @discord.ui.button(label="❌ Hủy Event", style=discord.ButtonStyle.red, row=4)
     async def huy_event(self, tt, n):
         try:
             global event_active, nguoi_tham_gia, msg_event, cho_phep_tham_gia
