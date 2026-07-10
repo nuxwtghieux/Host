@@ -463,24 +463,56 @@ async def cap_nhat_event():
 class NutEventChinh(discord.ui.View):
     def __init__(self):
         super().__init__(timeout=None)
-        
-        # HÀNG 0: 1 nút
+
+        # HÀNG 0: Nút cho tất cả (1 nút)
         self.add_item(discord.ui.Button(label="💅 Tham gia", style=discord.ButtonStyle.green, custom_id="tham_gia_ev"))
-        
-        # HÀNG 1: 2 nút (Member Paw)
+
+        # HÀNG 1: Nút Member Paw (2 nút)
         self.add_item(discord.ui.Button(label="🚪 Rời đi", style=discord.ButtonStyle.red, custom_id="roi_ev", row=1))
         self.add_item(discord.ui.Button(label="✏️ Sửa tên", style=discord.ButtonStyle.blurple, custom_id="sua_ten_ev", row=1))
-        
-        # HÀNG 2: 4 nút (Admin/Mod)
+
+        # HÀNG 2: Nút Admin (4 nút)
         self.add_item(discord.ui.Button(label="👑 Tham gia", style=discord.ButtonStyle.green, custom_id="admin_tham_gia_ev", row=2))
-        self.add_item(discord.ui.Button(label="✏️ Sửa DS", style=discord.ButtonStyle.blurple, custom_id="sua_ds_ev", row=2))
-        self.add_item(discord.ui.Button(label="📜 Lịch sử", style=discord.ButtonStyle.grey, custom_id="lich_su_ev", row=2))
+        self.add_item(discord.ui.Button(label="📋 Quản lý", style=discord.ButtonStyle.blurple, custom_id="quan_ly_ev", row=2))  # GỘP SỬA DS + LỊCH SỬ
         self.add_item(discord.ui.Button(label="▶️ Bắt đầu", style=discord.ButtonStyle.green, custom_id="bat_dau_ev", row=2))
-        
-        # HÀNG 3: 1 nút (Admin/Mod)
-        self.add_item(discord.ui.Button(label="⏸️ Đóng/Mở", style=discord.ButtonStyle.red, custom_id="dung_mo_ev", row=3))
-        
+        self.add_item(discord.ui.Button(label="⏸️ Đóng/Mở", style=discord.ButtonStyle.red, custom_id="dung_mo_ev", row=2))  # ĐƯA LÊN HÀNG 2
+
+        # HÀNG 3: Dành cho Admin (1 nút) - CHUYỂN XUỐNG RIÊNG
+        self.add_item(discord.ui.Button(label="❌ Hủy Event", style=discord.ButtonStyle.red, custom_id="huy_ev", row=3))
+
     async def interaction_check(self, interaction):
+        custom_id = interaction.data.get("custom_id")
+        user = interaction.user
+
+        la_admin = la_quan_tri(interaction)
+        la_mod = la_quan_tri_hoac_dieu_hanh(interaction)
+        la_paw = any(r.id == ID_MEMBER_PAW for r in user.roles)
+
+        # === NÚT MEMBER PAW (Hàng 1) ===
+        if custom_id in ["roi_ev", "sua_ten_ev"]:
+            if la_admin or la_mod:
+                await interaction.response.send_message("❌ Admin/Mod không thể rời đi!", ephemeral=True)
+                return False
+            if not la_paw:
+                await interaction.response.send_message("❌ Bạn không có quyền!", ephemeral=True)
+                return False
+            return True
+
+        # === NÚT ADMIN (Hàng 2 và 3) ===
+        if custom_id in ["admin_tham_gia_ev", "quan_ly_ev", "bat_dau_ev", "dung_mo_ev", "huy_ev"]:
+            if not la_admin and not la_mod:
+                await interaction.response.send_message("❌ Chỉ Admin/Mod!", ephemeral=True)
+                return False
+            return True
+
+        return True
+
+    # Các callback giữ nguyên, chỉ thay "sua_ds_ev" và "lich_su_ev" thành "quan_ly_ev"
+    @discord.ui.button(label="📋 Quản lý", style=discord.ButtonStyle.blurple, custom_id="quan_ly_ev", row=2)
+    async def quan_ly(self, tt, n):
+        # Tạo view với 2 nút con: Sửa DS và Lịch sử
+        view = SuaDSView()
+        await tt.response.send_message("🧑‍🤝‍🧑 **Chọn hành động quản lý:**", view=view, ephemeral=True)    async def interaction_check(self, interaction):
         custom_id = interaction.data.get("custom_id")
         user = interaction.user
         
