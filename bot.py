@@ -463,19 +463,21 @@ async def cap_nhat_event():
 class NutEventChinh(discord.ui.View):
     def __init__(self):
         super().__init__(timeout=None)
-        # HÀNG 0: Nút Tham gia
+        # HÀNG 0: Nút Tham gia (cho tất cả)
         self.add_item(discord.ui.Button(label="💅 Tham gia", style=discord.ButtonStyle.green, custom_id="tham_gia_ev"))
         
-        # HÀNG 1: Nút Member Paw (ROLE 1523599853882703882)
+        # HÀNG 1: Nút Member Paw (CHỈ Member Paw mới thấy)
         self.add_item(discord.ui.Button(label="🚪 Rời đi", style=discord.ButtonStyle.red, custom_id="roi_ev", row=1))
-        self.add_item(discord.ui.Button(label="✏️ Chỉnh sửa tên", style=discord.ButtonStyle.blurple, custom_id="sua_ten_ev", row=1))
+        self.add_item(discord.ui.Button(label="✏️ Sửa tên", style=discord.ButtonStyle.blurple, custom_id="sua_ten_ev", row=1))
         
-        # HÀNG 2: Nút Admin/Mod
-        self.add_item(discord.ui.Button(label="👑 Tham gia (Admin)", style=discord.ButtonStyle.green, custom_id="admin_tham_gia_ev", row=2))
-        self.add_item(discord.ui.Button(label="✏️ Chỉnh sửa DS", style=discord.ButtonStyle.blurple, custom_id="sua_ds_ev", row=2))
+        # HÀNG 2: Nút Admin/Mod (3 nút)
+        self.add_item(discord.ui.Button(label="👑 Tham gia", style=discord.ButtonStyle.green, custom_id="admin_tham_gia_ev", row=2))
+        self.add_item(discord.ui.Button(label="✏️ Sửa DS", style=discord.ButtonStyle.blurple, custom_id="sua_ds_ev", row=2))
         self.add_item(discord.ui.Button(label="📜 Lịch sử", style=discord.ButtonStyle.grey, custom_id="lich_su_ev", row=2))
-        self.add_item(discord.ui.Button(label="▶️ Bắt đầu", style=discord.ButtonStyle.green, custom_id="bat_dau_ev", row=2))
-        self.add_item(discord.ui.Button(label="⏸️ Đóng/Mở", style=discord.ButtonStyle.red, custom_id="dung_mo_ev", row=2))
+        
+        # HÀNG 3: Nút Admin/Mod (2 nút)
+        self.add_item(discord.ui.Button(label="▶️ Bắt đầu", style=discord.ButtonStyle.green, custom_id="bat_dau_ev", row=3))
+        self.add_item(discord.ui.Button(label="⏸️ Đóng/Mở", style=discord.ButtonStyle.red, custom_id="dung_mo_ev", row=3))
 
     async def interaction_check(self, interaction):
         custom_id = interaction.data.get("custom_id")
@@ -485,14 +487,18 @@ class NutEventChinh(discord.ui.View):
         la_mod = la_quan_tri_hoac_dieu_hanh(interaction)
         la_paw = any(r.id == ID_MEMBER_PAW for r in user.roles)
         
-        # Nút Member Paw
+        # === NÚT MEMBER PAW - Chỉ Member Paw mới dùng được ===
         if custom_id in ["roi_ev", "sua_ten_ev"]:
-            if not la_paw and not la_admin and not la_mod:
+            # Admin/Mod KHÔNG được dùng nút này
+            if la_admin or la_mod:
+                await interaction.response.send_message("❌ Admin/Mod không thể rời đi!", ephemeral=True)
+                return False
+            if not la_paw:
                 await interaction.response.send_message("❌ Bạn không có quyền!", ephemeral=True)
                 return False
             return True
         
-        # Nút Admin
+        # === NÚT ADMIN - Chỉ Admin/Mod ===
         if custom_id in ["admin_tham_gia_ev", "sua_ds_ev", "lich_su_ev", "bat_dau_ev", "dung_mo_ev"]:
             if not la_admin and not la_mod:
                 await interaction.response.send_message("❌ Chỉ Admin/Mod!", ephemeral=True)
@@ -512,8 +518,7 @@ class NutEventChinh(discord.ui.View):
 
     @discord.ui.button(label="🚪 Rời đi", style=discord.ButtonStyle.red, custom_id="roi_ev")
     async def roi(self, tt, n):
-        if not event_active:
-            return await tt.response.send_message("❌ Event chưa bắt đầu!", ephemeral=True)
+        # CHỈ MEMBER PAW MỚI DÙNG ĐƯỢC
         if tt.user.id not in nguoi_tham_gia:
             return await tt.response.send_message("❌ Bạn chưa tham gia!", ephemeral=True)
         ten = nguoi_tham_gia[tt.user.id]
@@ -522,31 +527,29 @@ class NutEventChinh(discord.ui.View):
         await cap_nhat_event()
         await tt.response.send_message("✅ Đã rời khỏi event!", ephemeral=True)
 
-    @discord.ui.button(label="✏️ Chỉnh sửa tên", style=discord.ButtonStyle.blurple, custom_id="sua_ten_ev")
+    @discord.ui.button(label="✏️ Sửa tên", style=discord.ButtonStyle.blurple, custom_id="sua_ten_ev")
     async def sua_ten(self, tt, n):
+        # CHỈ MEMBER PAW MỚI DÙNG ĐƯỢC
         if tt.user.id not in nguoi_tham_gia:
             return await tt.response.send_message("❌ Bạn chưa tham gia!", ephemeral=True)
         await tt.response.send_modal(SuaTenModal())
 
-    @discord.ui.button(label="👑 Tham gia (Admin)", style=discord.ButtonStyle.green, custom_id="admin_tham_gia_ev")
+    @discord.ui.button(label="👑 Tham gia", style=discord.ButtonStyle.green, custom_id="admin_tham_gia_ev")
     async def admin_tham_gia(self, tt, n):
         await tt.response.send_modal(FormThamGia())
 
-    @discord.ui.button(label="✏️ Chỉnh sửa DS", style=discord.ButtonStyle.blurple, custom_id="sua_ds_ev")
+    @discord.ui.button(label="✏️ Sửa DS", style=discord.ButtonStyle.blurple, custom_id="sua_ds_ev")
     async def sua_ds(self, tt, n):
-        view = discord.ui.View()
-        view.add_item(discord.ui.Button(label="➕ Thêm người", style=discord.ButtonStyle.green, custom_id="them_nguoi"))
-        view.add_item(discord.ui.Button(label="➖ Xoá người", style=discord.ButtonStyle.red, custom_id="xoa_nguoi"))
+        view = SuaDSView()
         await tt.response.send_message("🧑‍🤝‍🧑 **Chọn hành động:**", view=view, ephemeral=True)
 
     @discord.ui.button(label="📜 Lịch sử", style=discord.ButtonStyle.grey, custom_id="lich_su_ev")
     async def lich_su(self, tt, n):
         if not lich_su_event:
             return await tt.response.send_message("📭 Chưa có lịch sử nào!", ephemeral=True)
-        
         embed = discord.Embed(title="📜 LỊCH SỬ EVENT", color=0x3498db)
         history_text = ""
-        for item in lich_su_event[-20:]:  # 20 gần nhất
+        for item in lich_su_event[-20:]:
             action = item["action"]
             nguoi = f"<@{item['nguoi']}>"
             nguoi_th = f"<@{item['nguoi_thuc_hien']}>"
@@ -561,7 +564,6 @@ class NutEventChinh(discord.ui.View):
                 history_text += f"➕ {nguoi_th} đã thêm {nguoi} ({item['ten']}) lúc {time}\n"
             elif action == "xoa":
                 history_text += f"➖ {nguoi_th} đã xoá {nguoi} ({item['ten']}) lúc {time}\n"
-        
         if history_text:
             embed.description = history_text
         else:
