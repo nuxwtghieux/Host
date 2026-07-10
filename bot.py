@@ -459,15 +459,15 @@ async def cap_nhat_event():
     except:
         pass
 
-# ===== NÚT EVENT CHÍNH (FIX LỖI HOÀN TOÀN) =====
+# ===== NÚT EVENT CHÍNH (FIX LỖI DUPLICATE) =====
 class NutEventChinh(discord.ui.View):
     def __init__(self):
         super().__init__(timeout=None)
         
-        # HÀNG 0: Nút cho tất cả
+        # HÀNG 0: 1 nút
         self.add_item(discord.ui.Button(label="💅 Tham gia", style=discord.ButtonStyle.green, custom_id="tham_gia_ev"))
         
-        # HÀNG 1: CHỈ 1 NÚT DUY NHẤT (Member Paw)
+        # HÀNG 1: 1 nút
         self.add_item(discord.ui.Button(label="🚪 Rời đi", style=discord.ButtonStyle.red, custom_id="roi_ev", row=1))
         
         # HÀNG 2: 2 nút Admin
@@ -480,7 +480,7 @@ class NutEventChinh(discord.ui.View):
         
         # HÀNG 4: 1 nút Admin
         self.add_item(discord.ui.Button(label="❌ Hủy Event", style=discord.ButtonStyle.red, custom_id="huy_ev", row=4))
-        
+
     async def interaction_check(self, interaction):
         custom_id = interaction.data.get("custom_id")
         user = interaction.user
@@ -489,8 +489,8 @@ class NutEventChinh(discord.ui.View):
         la_mod = la_quan_tri_hoac_dieu_hanh(interaction)
         la_paw = any(r.id == ID_MEMBER_PAW for r in user.roles)
         
-        # NÚT MEMBER PAW (Hàng 1)
-        if custom_id in ["roi_ev", "sua_ten_ev"]:
+        # NÚT MEMBER PAW
+        if custom_id in ["roi_ev"]:
             if la_admin or la_mod:
                 await interaction.response.send_message("❌ Admin/Mod không thể rời đi!", ephemeral=True)
                 return False
@@ -499,7 +499,7 @@ class NutEventChinh(discord.ui.View):
                 return False
             return True
         
-        # NÚT ADMIN (Hàng 2 và 3)
+        # NÚT ADMIN
         if custom_id in ["admin_tham_gia_ev", "quan_ly_ev", "bat_dau_ev", "dung_mo_ev", "huy_ev"]:
             if not la_admin and not la_mod:
                 await interaction.response.send_message("❌ Chỉ Admin/Mod!", ephemeral=True)
@@ -526,12 +526,6 @@ class NutEventChinh(discord.ui.View):
         them_lich_su("roi", tt.user.id, tt.user.id, ten=ten)
         await cap_nhat_event()
         await tt.response.send_message("✅ Đã rời khỏi event!", ephemeral=True)
-
-    @discord.ui.button(label="✏️ Sửa tên", style=discord.ButtonStyle.blurple, custom_id="sua_ten_ev")
-    async def sua_ten(self, tt, n):
-        if tt.user.id not in nguoi_tham_gia:
-            return await tt.response.send_message("❌ Bạn chưa tham gia!", ephemeral=True)
-        await tt.response.send_modal(SuaTenModal())
 
     @discord.ui.button(label="👑 Tham gia", style=discord.ButtonStyle.green, custom_id="admin_tham_gia_ev")
     async def admin_tham_gia(self, tt, n):
@@ -574,19 +568,19 @@ class NutEventChinh(discord.ui.View):
             pass
         await tt.response.send_message("✅ Đã hủy event!", ephemeral=True)
 
-# ===== XỬ LÝ NÚT PHỤ CỦA CHỈNH SỬA DS =====
+# ===== XỬ LÝ NÚT PHỤ CỦA CHỈNH SỬA DS (FIX CUSTOM_ID) =====
 class SuaDSView(discord.ui.View):
     def __init__(self):
         super().__init__(timeout=60)
-        self.add_item(discord.ui.Button(label="➕ Thêm người", style=discord.ButtonStyle.green, custom_id="them_nguoi"))
-        self.add_item(discord.ui.Button(label="➖ Xoá người", style=discord.ButtonStyle.red, custom_id="xoa_nguoi"))
+        self.add_item(discord.ui.Button(label="➕ Thêm người", style=discord.ButtonStyle.green, custom_id="them_nguoi_ev"))
+        self.add_item(discord.ui.Button(label="➖ Xoá người", style=discord.ButtonStyle.red, custom_id="xoa_nguoi_ev"))
         self.add_item(discord.ui.Button(label="📜 Lịch sử", style=discord.ButtonStyle.grey, custom_id="lich_su_ev2"))
 
-    @discord.ui.button(label="➕ Thêm người", style=discord.ButtonStyle.green, custom_id="them_nguoi")
+    @discord.ui.button(label="➕ Thêm người", style=discord.ButtonStyle.green, custom_id="them_nguoi_ev")
     async def them_nguoi(self, tt, n):
         await tt.response.send_modal(ThemNguoiModal())
 
-    @discord.ui.button(label="➖ Xoá người", style=discord.ButtonStyle.red, custom_id="xoa_nguoi")
+    @discord.ui.button(label="➖ Xoá người", style=discord.ButtonStyle.red, custom_id="xoa_nguoi_ev")
     async def xoa_nguoi(self, tt, n):
         await tt.response.send_modal(XoaNguoiModal())
 
