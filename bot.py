@@ -580,179 +580,98 @@ async def cap_nhat_event():
         traceback.print_exc()
 
 # ===== NÚT EVENT CHÍNH (FIX LỖI custom_id) =====
+
 class NutEventChinh(discord.ui.View):
     def __init__(self):
         super().__init__(timeout=None)
 
-        # HÀNG 0: 1 nút
-        self.add_item(discord.ui.Button(
-            label="💅 Tham gia",
-            style=discord.ButtonStyle.green
-        ))
-
-        # HÀNG 1: 1 nút
-        self.add_item(discord.ui.Button(
-            label="🚪 Rời đi",
-            style=discord.ButtonStyle.red,
-            row=1
-        ))
-
-        # HÀNG 2: 2 nút Admin
-        self.add_item(discord.ui.Button(
-            label="👑 Tham gia",
-            style=discord.ButtonStyle.green,
-            row=2
-        ))
-        self.add_item(discord.ui.Button(
-            label="📋 Quản lý",
-            style=discord.ButtonStyle.blurple,
-            row=2
-        ))
-
-        # HÀNG 3: 2 nút Admin
-        self.add_item(discord.ui.Button(
-            label="▶️ Bắt đầu",
-            style=discord.ButtonStyle.green,
-            row=3
-        ))
-        self.add_item(discord.ui.Button(
-            label="⏸️ Đóng/Mở",
-            style=discord.ButtonStyle.red,
-            row=3
-        ))
-
-        # HÀNG 4: 1 nút Admin
-        self.add_item(discord.ui.Button(
-            label="❌ Hủy Event",
-            style=discord.ButtonStyle.red,
-            row=4
-        ))
-
-    async def interaction_check(self, interaction):
+    async def interaction_check(self, interaction: discord.Interaction):
         try:
             custom_id = interaction.data.get("custom_id")
-            user = interaction.user
 
             la_admin = la_quan_tri(interaction)
             la_mod = la_quan_tri_hoac_dieu_hanh(interaction)
-            la_paw = any(r.id == ID_MEMBER_PAW for r in user.roles)
 
-            if custom_id in ["roi_ev"]:
+            # Nếu là Admin/Mod thì ưu tiên quyền này, bỏ quyền Member
+            if la_admin or la_mod:
+                la_paw = False
+            else:
+                la_paw = any(r.id == ID_MEMBER_PAW for r in interaction.user.roles)
+
+            if custom_id == "roi_ev":
                 if la_admin or la_mod:
-                    await interaction.response.send_message("❌ Admin/Mod không thể rời đi!", ephemeral=True)
+                    await interaction.response.send_message(
+                        "❌ Admin/Mod không thể rời đi!",
+                        ephemeral=True
+                    )
                     return False
-                if not la_paw:
-                    await interaction.response.send_message("❌ Bạn không có quyền!", ephemeral=True)
-                    return False
-                return True
 
-            if custom_id in ["admin_tham_gia_ev", "quan_ly_ev", "bat_dau_ev", "dung_mo_ev", "huy_ev"]:
-                if not la_admin and not la_mod:
-                    await interaction.response.send_message("❌ Chỉ Admin/Mod!", ephemeral=True)
+                if not la_paw:
+                    await interaction.response.send_message(
+                        "❌ Bạn không có quyền!",
+                        ephemeral=True
+                    )
+                    return False
+
+            elif custom_id in (
+                "admin_tham_gia_ev",
+                "quan_ly_ev",
+                "bat_dau_ev",
+                "dung_mo_ev",
+                "huy_ev",
+            ):
+                if not (la_admin or la_mod):
+                    await interaction.response.send_message(
+                        "❌ Chỉ Admin/Mod!",
+                        ephemeral=True
+                    )
                     return False
 
             return True
-        except Exception as e:
-            print(f"❌ Lỗi interaction_check: {e}")
+
+        except Exception:
             traceback.print_exc()
-            await interaction.response.send_message("❌ Đã xảy ra lỗi!", ephemeral=True)
+            if not interaction.response.is_done():
+                await interaction.response.send_message(
+                    "❌ Đã xảy ra lỗi!",
+                    ephemeral=True
+                )
             return False
 
-    @discord.ui.button(label="💅 Tham gia", style=discord.ButtonStyle.green)
-    async def tham_gia(self, tt, n):
-        try:
-            if not event_active:
-                return await tt.response.send_message("❌ Event chưa bắt đầu!", ephemeral=True)
-            if not cho_phep_tham_gia:
-                return await tt.response.send_message("❌ Event đã đóng tham gia!", ephemeral=True)
-            if tt.user.id in nguoi_tham_gia:
-                return await tt.response.send_message("❌ Bạn đã tham gia rồi!", ephemeral=True)
-            await tt.response.send_modal(FormThamGia())
-        except Exception as e:
-            print(f"❌ Lỗi tham_gia: {e}")
-            traceback.print_exc()
-            await tt.response.send_message("❌ Đã xảy ra lỗi!", ephemeral=True)
+    @discord.ui.button(label="💅 Tham gia", style=discord.ButtonStyle.green,
+                       custom_id="tham_gia_ev", row=0)
+    async def tham_gia(self, interaction: discord.Interaction, button: discord.ui.Button):
+        pass
 
-    @discord.ui.button(label="🚪 Rời đi", style=discord.ButtonStyle.red, row=1)
-    async def roi(self, tt, n):
-        try:
-            if tt.user.id not in nguoi_tham_gia:
-                return await tt.response.send_message("❌ Bạn chưa tham gia!", ephemeral=True)
-            ten = nguoi_tham_gia[tt.user.id]
-            del nguoi_tham_gia[tt.user.id]
-            them_lich_su("roi", tt.user.id, tt.user.id, ten=ten)
-            await cap_nhat_event()
-            await tt.response.send_message("✅ Đã rời khỏi event!", ephemeral=True)
-        except Exception as e:
-            print(f"❌ Lỗi roi: {e}")
-            traceback.print_exc()
-            await tt.response.send_message("❌ Đã xảy ra lỗi!", ephemeral=True)
+    @discord.ui.button(label="🚪 Rời đi", style=discord.ButtonStyle.red,
+                       custom_id="roi_ev", row=1)
+    async def roi(self, interaction: discord.Interaction, button: discord.ui.Button):
+        pass
 
-    @discord.ui.button(label="👑 Tham gia", style=discord.ButtonStyle.green, row=2)
-    async def admin_tham_gia(self, tt, n):
-        try:
-            await tt.response.send_modal(FormThamGia())
-        except Exception as e:
-            print(f"❌ Lỗi admin_tham_gia: {e}")
-            traceback.print_exc()
-            await tt.response.send_message("❌ Đã xảy ra lỗi!", ephemeral=True)
+    @discord.ui.button(label="👑 Tham gia", style=discord.ButtonStyle.green,
+                       custom_id="admin_tham_gia_ev", row=2)
+    async def admin_tham_gia(self, interaction: discord.Interaction, button: discord.ui.Button):
+        pass
 
-    @discord.ui.button(label="📋 Quản lý", style=discord.ButtonStyle.blurple, row=2)
-    async def quan_ly(self, tt, n):
-        try:
-            view = SuaDSView()
-            await tt.response.send_message("🧑‍🤝‍🧑 **Chọn hành động quản lý:**", view=view, ephemeral=True)
-        except Exception as e:
-            print(f"❌ Lỗi quan_ly: {e}")
-            traceback.print_exc()
-            await tt.response.send_message("❌ Đã xảy ra lỗi!", ephemeral=True)
+    @discord.ui.button(label="📋 Quản lý", style=discord.ButtonStyle.blurple,
+                       custom_id="quan_ly_ev", row=2)
+    async def quan_ly(self, interaction: discord.Interaction, button: discord.ui.Button):
+        pass
 
-    @discord.ui.button(label="▶️ Bắt đầu", style=discord.ButtonStyle.green, row=3)
-    async def bat_dau(self, tt, n):
-        try:
-            if len(nguoi_tham_gia) < 2:
-                return await tt.response.send_message("❌ Cần ít nhất 2 người tham gia!", ephemeral=True)
-            global cho_phep_tham_gia, vong_hien_tai, ds_da_thang
-            cho_phep_tham_gia = False
-            vong_hien_tai = 1
-            ds_da_thang = []
-            await cap_nhat_event()
-            await tt.response.send_message(f"✅ Bắt đầu event với {len(nguoi_tham_gia)} người!", ephemeral=True)
-            await gui_tran_dau_moi()
-        except Exception as e:
-            print(f"❌ Lỗi bat_dau: {e}")
-            traceback.print_exc()
-            await tt.response.send_message("❌ Đã xảy ra lỗi!", ephemeral=True)
+    @discord.ui.button(label="▶️ Bắt đầu", style=discord.ButtonStyle.green,
+                       custom_id="bat_dau_ev", row=3)
+    async def bat_dau(self, interaction: discord.Interaction, button: discord.ui.Button):
+        pass
 
-    @discord.ui.button(label="⏸️ Đóng/Mở", style=discord.ButtonStyle.red, row=3)
-    async def dong_mo(self, tt, n):
-        try:
-            global cho_phep_tham_gia
-            cho_phep_tham_gia = not cho_phep_tham_gia
-            await cap_nhat_event()
-            status = "mở" if cho_phep_tham_gia else "đóng"
-            await tt.response.send_message(f"✅ Đã {status} tham gia!", ephemeral=True)
-        except Exception as e:
-            print(f"❌ Lỗi dong_mo: {e}")
-            traceback.print_exc()
-            await tt.response.send_message("❌ Đã xảy ra lỗi!", ephemeral=True)
+    @discord.ui.button(label="⏸️ Đóng/Mở", style=discord.ButtonStyle.red,
+                       custom_id="dung_mo_ev", row=3)
+    async def dong_mo(self, interaction: discord.Interaction, button: discord.ui.Button):
+        pass
 
-    @discord.ui.button(label="❌ Hủy Event", style=discord.ButtonStyle.red, row=4)
-    async def huy_event(self, tt, n):
-        try:
-            global event_active, nguoi_tham_gia, msg_event, cho_phep_tham_gia
-            event_active = False
-            nguoi_tham_gia = {}
-            cho_phep_tham_gia = True
-            try:
-                await msg_event.delete()
-            except:
-                pass
-            await tt.response.send_message("✅ Đã hủy event!", ephemeral=True)
-        except Exception as e:
-            print(f"❌ Lỗi huy_event: {e}")
-            traceback.print_exc()
-            await tt.response.send_message("❌ Đã xảy ra lỗi!", ephemeral=True)
+    @discord.ui.button(label="❌ Hủy Event", style=discord.ButtonStyle.red,
+                       custom_id="huy_ev", row=4)
+    async def huy_event(self, interaction: discord.Interaction, button: discord.ui.Button):
+        pass
 
 # ===== XỬ LÝ NÚT PHỤ CỦA CHỈNH SỬA DS =====
 class SuaDSView(discord.ui.View):
