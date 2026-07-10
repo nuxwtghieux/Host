@@ -464,22 +464,23 @@ class NutEventChinh(discord.ui.View):
     def __init__(self):
         super().__init__(timeout=None)
         
-        # HÀNG 0: 1 nút cho tất cả
+        # HÀNG 0: Nút cho tất cả
         self.add_item(discord.ui.Button(label="💅 Tham gia", style=discord.ButtonStyle.green, custom_id="tham_gia_ev"))
         
-        # HÀNG 1: 2 nút Member Paw
+        # HÀNG 1: CHỈ 1 NÚT DUY NHẤT (Member Paw)
         self.add_item(discord.ui.Button(label="🚪 Rời đi", style=discord.ButtonStyle.red, custom_id="roi_ev", row=1))
-        self.add_item(discord.ui.Button(label="✏️ Sửa tên", style=discord.ButtonStyle.blurple, custom_id="sua_ten_ev", row=1))
         
-        # HÀNG 2: 3 nút Admin
+        # HÀNG 2: 2 nút Admin
         self.add_item(discord.ui.Button(label="👑 Tham gia", style=discord.ButtonStyle.green, custom_id="admin_tham_gia_ev", row=2))
         self.add_item(discord.ui.Button(label="📋 Quản lý", style=discord.ButtonStyle.blurple, custom_id="quan_ly_ev", row=2))
-        self.add_item(discord.ui.Button(label="▶️ Bắt đầu", style=discord.ButtonStyle.green, custom_id="bat_dau_ev", row=2))
         
         # HÀNG 3: 2 nút Admin
+        self.add_item(discord.ui.Button(label="▶️ Bắt đầu", style=discord.ButtonStyle.green, custom_id="bat_dau_ev", row=3))
         self.add_item(discord.ui.Button(label="⏸️ Đóng/Mở", style=discord.ButtonStyle.red, custom_id="dung_mo_ev", row=3))
-        self.add_item(discord.ui.Button(label="❌ Hủy Event", style=discord.ButtonStyle.red, custom_id="huy_ev", row=3))
-
+        
+        # HÀNG 4: 1 nút Admin
+        self.add_item(discord.ui.Button(label="❌ Hủy Event", style=discord.ButtonStyle.red, custom_id="huy_ev", row=4))
+        
     async def interaction_check(self, interaction):
         custom_id = interaction.data.get("custom_id")
         user = interaction.user
