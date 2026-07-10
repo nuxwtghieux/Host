@@ -459,25 +459,24 @@ async def cap_nhat_event():
     except:
         pass
 
-# ===== NÚT EVENT CHÍNH =====
+# ===== NÚT EVENT CHÍNH (ĐÃ SỬA LỖI BỐ CỤC) =====
 class NutEventChinh(discord.ui.View):
     def __init__(self):
         super().__init__(timeout=None)
-        # HÀNG 0: Nút Tham gia (cho tất cả)
+        
+        # === HÀNG 0: Nút Tham gia (cho tất cả) ===
         self.add_item(discord.ui.Button(label="💅 Tham gia", style=discord.ButtonStyle.green, custom_id="tham_gia_ev"))
         
-        # HÀNG 1: Nút Member Paw (CHỈ Member Paw mới thấy)
+        # === HÀNG 1: Nút Member Paw (2 nút - CHỈ Member Paw mới thấy) ===
         self.add_item(discord.ui.Button(label="🚪 Rời đi", style=discord.ButtonStyle.red, custom_id="roi_ev", row=1))
         self.add_item(discord.ui.Button(label="✏️ Sửa tên", style=discord.ButtonStyle.blurple, custom_id="sua_ten_ev", row=1))
         
-        # HÀNG 2: Nút Admin/Mod (3 nút)
+        # === HÀNG 2: Nút Admin/Mod (5 nút) ===
         self.add_item(discord.ui.Button(label="👑 Tham gia", style=discord.ButtonStyle.green, custom_id="admin_tham_gia_ev", row=2))
         self.add_item(discord.ui.Button(label="✏️ Sửa DS", style=discord.ButtonStyle.blurple, custom_id="sua_ds_ev", row=2))
         self.add_item(discord.ui.Button(label="📜 Lịch sử", style=discord.ButtonStyle.grey, custom_id="lich_su_ev", row=2))
-        
-        # HÀNG 3: Nút Admin/Mod (2 nút)
-        self.add_item(discord.ui.Button(label="▶️ Bắt đầu", style=discord.ButtonStyle.green, custom_id="bat_dau_ev", row=3))
-        self.add_item(discord.ui.Button(label="⏸️ Đóng/Mở", style=discord.ButtonStyle.red, custom_id="dung_mo_ev", row=3))
+        self.add_item(discord.ui.Button(label="▶️ Bắt đầu", style=discord.ButtonStyle.green, custom_id="bat_dau_ev", row=2))
+        self.add_item(discord.ui.Button(label="⏸️ Đóng/Mở", style=discord.ButtonStyle.red, custom_id="dung_mo_ev", row=2))
 
     async def interaction_check(self, interaction):
         custom_id = interaction.data.get("custom_id")
