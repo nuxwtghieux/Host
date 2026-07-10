@@ -464,23 +464,22 @@ class NutEventChinh(discord.ui.View):
     def __init__(self):
         super().__init__(timeout=None)
         
-        # === HÀNG 0: Dành cho tất cả (Tối đa 5 nút) ===
-        # Hiện tại chỉ có 1 nút, có thể thêm sau
+        # HÀNG 0: 1 nút
         self.add_item(discord.ui.Button(label="💅 Tham gia", style=discord.ButtonStyle.green, custom_id="tham_gia_ev"))
         
-        # === HÀNG 1: Dành cho Member Paw (2 nút) ===
-        # Lưu ý: Đã bớt 1 nút so với code cũ, nhưng đủ 2 nút cho Member Paw là "Rời đi" và "Sửa tên"
+        # HÀNG 1: 2 nút (Member Paw)
         self.add_item(discord.ui.Button(label="🚪 Rời đi", style=discord.ButtonStyle.red, custom_id="roi_ev", row=1))
         self.add_item(discord.ui.Button(label="✏️ Sửa tên", style=discord.ButtonStyle.blurple, custom_id="sua_ten_ev", row=1))
         
-        # === HÀNG 2: Nút Admin/Mod (4 nút - Đã được giảm xuống để phù hợp) ===
+        # HÀNG 2: 4 nút (Admin/Mod)
         self.add_item(discord.ui.Button(label="👑 Tham gia", style=discord.ButtonStyle.green, custom_id="admin_tham_gia_ev", row=2))
         self.add_item(discord.ui.Button(label="✏️ Sửa DS", style=discord.ButtonStyle.blurple, custom_id="sua_ds_ev", row=2))
         self.add_item(discord.ui.Button(label="📜 Lịch sử", style=discord.ButtonStyle.grey, custom_id="lich_su_ev", row=2))
         self.add_item(discord.ui.Button(label="▶️ Bắt đầu", style=discord.ButtonStyle.green, custom_id="bat_dau_ev", row=2))
         
-        # === HÀNG 3: Dành cho Admin/Mod (1 nút) ===
+        # HÀNG 3: 1 nút (Admin/Mod)
         self.add_item(discord.ui.Button(label="⏸️ Đóng/Mở", style=discord.ButtonStyle.red, custom_id="dung_mo_ev", row=3))
+        
     async def interaction_check(self, interaction):
         custom_id = interaction.data.get("custom_id")
         user = interaction.user
