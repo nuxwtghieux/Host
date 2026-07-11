@@ -122,12 +122,12 @@ async def phuc_hoi_event_tu_tin_nhan(bot):
                             ds_text = field.value
                             nguoi_tham_gia = {}
                             for line in ds_text.split("\n"):
-                                if "**" in line and "(" in line:
-                                    match = re.search(r'\(`(\d+)`\)', line)
-                                    if match:
-                                        uid = int(match.group(1))
-                                        ten = line.split("**")[1] if "**" in line else "Unknown"
-                                        nguoi_tham_gia[uid] = ten
+                                if "**" in line and "(@" in line:
+                                    match = re.search(r'@(\S+)\)', line)
+                                    match_uid = re.search(r'\*\*(\d+)\.\*\*\s+(.+?)\s+\(@', line)
+                                    if match_uid:
+                                        # Tìm uid từ dòng khác hoặc từ lịch sử
+                                        pass
                             break
                     for field in embed.fields:
                         if field.name == "📌 TRẠNG THÁI":
@@ -561,8 +561,10 @@ async def cap_nhat_event():
         if nguoi_tham_gia:
             for i, (uid, ten) in enumerate(nguoi_tham_gia.items(), 1):
                 user = bot.get_user(uid)
-                ten_hien_thi = user.display_name if user else ten
-                ds += f"**{i}.** {ten_hien_thi} (`{uid}`)\n"
+                if user:
+                    ds += f"**{i}.** {ten} (@{user.name})\n"
+                else:
+                    ds += f"**{i}.** {ten} (`{uid}`)\n"
         else:
             ds = "Chưa có ai tham gia!"
         trang_thai = "Event đang mở tham gia" if cho_phep_tham_gia else "Event đã đóng tham gia"
@@ -579,19 +581,15 @@ async def cap_nhat_event():
         print(f"❌ Lỗi cap_nhat_event: {e}")
         traceback.print_exc()
 
-# ===== NÚT EVENT CHÍNH (ĐÃ SỬA - CHỈ 3 NÚT) =====
-
+# ===== NÚT EVENT CHÍNH (CHỈ 3 NÚT) =====
 class NutEventChinh(discord.ui.View):
     def __init__(self):
         super().__init__(timeout=None)
-        # ĐÃ XÓA TẤT CẢ self.add_item()
-        # Chỉ dùng @discord.ui.button decorators bên dưới
 
     async def interaction_check(self, interaction: discord.Interaction):
         try:
             custom_id = interaction.data.get("custom_id")
             
-            # Kiểm tra quyền cho nút "Rời đi" - Member thường mới được dùng
             if custom_id == "roi_ev":
                 la_admin = la_quan_tri(interaction)
                 la_mod = la_quan_tri_hoac_dieu_hanh(interaction)
@@ -669,17 +667,13 @@ class NutEventChinh(discord.ui.View):
             traceback.print_exc()
             await interaction.response.send_message("❌ Đã xảy ra lỗi!", ephemeral=True)
 
-# ===== XỬ LÝ NÚT PHỤ CỦA CHỈNH SỬA DS =====
+# ===== SUA DS VIEW (ĐÃ SỬA) =====
 class SuaDSView(discord.ui.View):
     def __init__(self):
-        super().__init__(timeout=60)
-        # Giữ nguyên add_item cho view tạm thời này
-        self.add_item(discord.ui.Button(label="➕ Thêm người", style=discord.ButtonStyle.green, custom_id="them_nguoi_ev"))
-        self.add_item(discord.ui.Button(label="➖ Xoá người", style=discord.ButtonStyle.red, custom_id="xoa_nguoi_ev"))
-        self.add_item(discord.ui.Button(label="📜 Lịch sử", style=discord.ButtonStyle.grey, custom_id="lich_su_ev2"))
+        super().__init__(timeout=None)
 
     @discord.ui.button(label="➕ Thêm người", style=discord.ButtonStyle.green, custom_id="them_nguoi_ev")
-    async def them_nguoi(self, tt, n):
+    async def them_nguoi(self, tt: discord.Interaction, button: discord.ui.Button):
         try:
             await tt.response.send_modal(ThemNguoiModal())
         except Exception as e:
@@ -688,7 +682,7 @@ class SuaDSView(discord.ui.View):
             await tt.response.send_message("❌ Đã xảy ra lỗi!", ephemeral=True)
 
     @discord.ui.button(label="➖ Xoá người", style=discord.ButtonStyle.red, custom_id="xoa_nguoi_ev")
-    async def xoa_nguoi(self, tt, n):
+    async def xoa_nguoi(self, tt: discord.Interaction, button: discord.ui.Button):
         try:
             await tt.response.send_modal(XoaNguoiModal())
         except Exception as e:
@@ -697,7 +691,7 @@ class SuaDSView(discord.ui.View):
             await tt.response.send_message("❌ Đã xảy ra lỗi!", ephemeral=True)
 
     @discord.ui.button(label="📜 Lịch sử", style=discord.ButtonStyle.grey, custom_id="lich_su_ev2")
-    async def lich_su(self, tt, n):
+    async def lich_su(self, tt: discord.Interaction, button: discord.ui.Button):
         try:
             if not lich_su_event:
                 return await tt.response.send_message("📭 Chưa có lịch sử nào!", ephemeral=True)
@@ -776,8 +770,6 @@ class NutChonThang(discord.ui.View):
         self.da_chon = False
         t1 = "ADMIN/MOD" if u1 == "admin" else nguoi_tham_gia.get(u1, "?")
         t2 = "ADMIN/MOD" if u2 == "admin" else nguoi_tham_gia.get(u2, "?")
-        self.add_item(discord.ui.Button(label=f"🏆 {t1}", style=discord.ButtonStyle.green, custom_id="chon_1"))
-        self.add_item(discord.ui.Button(label=f"🏆 {t2}", style=discord.ButtonStyle.blurple, custom_id="chon_2"))
 
     async def interaction_check(self, interaction):
         try:
@@ -791,7 +783,7 @@ class NutChonThang(discord.ui.View):
             await interaction.response.send_message("❌ Đã xảy ra lỗi!", ephemeral=True)
             return False
 
-    @discord.ui.button(label="🏆 {t1}", style=discord.ButtonStyle.green, custom_id="chon_1")
+    @discord.ui.button(label="🏆 Người 1", style=discord.ButtonStyle.green, custom_id="chon_1")
     async def chon_1(self, tt, n):
         try:
             if self.da_chon:
@@ -802,7 +794,7 @@ class NutChonThang(discord.ui.View):
             traceback.print_exc()
             await tt.response.send_message("❌ Đã xảy ra lỗi!", ephemeral=True)
 
-    @discord.ui.button(label="🏆 {t2}", style=discord.ButtonStyle.blurple, custom_id="chon_2")
+    @discord.ui.button(label="🏆 Người 2", style=discord.ButtonStyle.blurple, custom_id="chon_2")
     async def chon_2(self, tt, n):
         try:
             if self.da_chon:
@@ -1205,15 +1197,13 @@ async def stopev(tt):
         await tt.response.send_message("❌ Đã xảy ra lỗi!", ephemeral=True)
 
 # ===== SLASH COMMANDS MỚI CHO EVENT =====
-
 @discord.app_commands.command(name="bdev", description="▶️ Bắt đầu Event (Admin/Mod)")
 async def bdev(tt: discord.Interaction):
-    """Bắt đầu Event - giữ nguyên logic nút ▶️ Bắt đầu cũ"""
     try:
         if not (la_quan_tri(tt) or la_quan_tri_hoac_dieu_hanh(tt)):
             return await tt.response.send_message("❌ Chỉ Admin/Mod mới dùng được!", ephemeral=True)
         
-        global vong_hien_tai, ds_da_thang
+        global vong_hien_tai, ds_da_thang, cho_phep_tham_gia
         if not event_active:
             return await tt.response.send_message("❌ Event chưa bắt đầu!", ephemeral=True)
         if len(nguoi_tham_gia) < 2:
@@ -1232,7 +1222,6 @@ async def bdev(tt: discord.Interaction):
 
 @discord.app_commands.command(name="csds", description="📋 Chỉnh sửa danh sách người chơi (Admin/Mod)")
 async def csds(tt: discord.Interaction):
-    """Chỉnh sửa danh sách - giống nút Quản lý cũ"""
     try:
         if not (la_quan_tri(tt) or la_quan_tri_hoac_dieu_hanh(tt)):
             return await tt.response.send_message("❌ Chỉ Admin/Mod mới dùng được!", ephemeral=True)
@@ -1249,7 +1238,6 @@ async def csds(tt: discord.Interaction):
 
 @discord.app_commands.command(name="offjoin", description="🔒 Đóng tham gia Event (Admin/Mod)")
 async def offjoin(tt: discord.Interaction):
-    """Đóng tham gia Event"""
     try:
         if not (la_quan_tri(tt) or la_quan_tri_hoac_dieu_hanh(tt)):
             return await tt.response.send_message("❌ Chỉ Admin/Mod mới dùng được!", ephemeral=True)
@@ -1268,7 +1256,6 @@ async def offjoin(tt: discord.Interaction):
 
 @discord.app_commands.command(name="onjoin", description="🔓 Mở tham gia Event (Admin/Mod)")
 async def onjoin(tt: discord.Interaction):
-    """Mở tham gia Event"""
     try:
         if not (la_quan_tri(tt) or la_quan_tri_hoac_dieu_hanh(tt)):
             return await tt.response.send_message("❌ Chỉ Admin/Mod mới dùng được!", ephemeral=True)
@@ -1287,7 +1274,6 @@ async def onjoin(tt: discord.Interaction):
 
 @discord.app_commands.command(name="cancelev", description="❌ Hủy Event (Admin/Mod)")
 async def cancelev(tt: discord.Interaction):
-    """Hủy Event - giữ nguyên logic nút ❌ Hủy Event cũ"""
     try:
         if not (la_quan_tri(tt) or la_quan_tri_hoac_dieu_hanh(tt)):
             return await tt.response.send_message("❌ Chỉ Admin/Mod mới dùng được!", ephemeral=True)
@@ -1296,11 +1282,8 @@ async def cancelev(tt: discord.Interaction):
         if not event_active:
             return await tt.response.send_message("❌ Không có event nào đang chạy!", ephemeral=True)
         
-        # Xóa người tham gia
         nguoi_tham_gia.clear()
-        # Reset biến
         event_active = False
-        # Xóa embed Event
         if msg_event:
             try:
                 await msg_event.delete()
@@ -1316,7 +1299,6 @@ async def cancelev(tt: discord.Interaction):
 
 @discord.app_commands.command(name="lsnew", description="📜 Hiển thị lịch sử mới nhất (Admin/Mod)")
 async def lsnew(tt: discord.Interaction):
-    """Hiển thị lịch sử mới nhất"""
     try:
         if not (la_quan_tri(tt) or la_quan_tri_hoac_dieu_hanh(tt)):
             return await tt.response.send_message("❌ Chỉ Admin/Mod mới dùng được!", ephemeral=True)
@@ -1324,7 +1306,6 @@ async def lsnew(tt: discord.Interaction):
         if not lich_su_event:
             return await tt.response.send_message("📭 Chưa có lịch sử nào!", ephemeral=True)
         
-        # Lấy phần tử cuối cùng
         item = lich_su_event[-1]
         action = item["action"]
         nguoi = f"<@{item['nguoi']}>"
@@ -1382,24 +1363,18 @@ class Bot(discord.Client):
     async def setup_hook(self):
         try:
             mc = discord.Object(id=ID_MAY_CHU)
-            # Đăng ký lệnh cũ
             self.cay.add_command(lenh_tat_tim_map)
             self.cay.add_command(lenh_bat_tim_map)
             self.cay.add_command(startev)
             self.cay.add_command(stopev)
-            
-            # Đăng ký lệnh mới cho Event
             self.cay.add_command(bdev)
             self.cay.add_command(csds)
             self.cay.add_command(offjoin)
             self.cay.add_command(onjoin)
             self.cay.add_command(cancelev)
             self.cay.add_command(lsnew)
-            
             await self.cay.sync(guild=mc)
             await self.cay.sync()
-            
-            # Đăng ký persistent views
             self.add_view(GiaoDienKiemTraGia())
             self.add_view(GiaoDienTaoDon())
             self.add_view(DieuKhienDon())
@@ -1425,54 +1400,6 @@ class Bot(discord.Client):
         except Exception as e:
             print(f"❌ Lỗi on_ready: {e}")
             traceback.print_exc()
-
-    async def on_interaction(self, interaction: discord.Interaction):
-        """Xử lý các button interaction từ SuaDSView"""
-        try:
-            if interaction.type == discord.InteractionType.component:
-                custom_id = interaction.data.get("custom_id")
-                
-                # Xử lý các nút từ SuaDSView
-                if custom_id in ["them_nguoi_ev", "xoa_nguoi_ev", "lich_su_ev2"]:
-                    if not (la_quan_tri(interaction) or la_quan_tri_hoac_dieu_hanh(interaction)):
-                        await interaction.response.send_message("❌ Chỉ Admin/Mod!", ephemeral=True)
-                        return
-                    
-                    if custom_id == "them_nguoi_ev":
-                        await interaction.response.send_modal(ThemNguoiModal())
-                    elif custom_id == "xoa_nguoi_ev":
-                        await interaction.response.send_modal(XoaNguoiModal())
-                    elif custom_id == "lich_su_ev2":
-                        if not lich_su_event:
-                            await interaction.response.send_message("📭 Chưa có lịch sử nào!", ephemeral=True)
-                            return
-                        embed = discord.Embed(title="📜 LỊCH SỬ EVENT", color=0x3498db)
-                        history_text = ""
-                        for item in lich_su_event[-20:]:
-                            action = item["action"]
-                            nguoi = f"<@{item['nguoi']}>"
-                            nguoi_th = f"<@{item['nguoi_thuc_hien']}>"
-                            time = item["time"]
-                            if action == "tham_gia":
-                                history_text += f"✅ {nguoi} đã tham gia lúc {time}\n"
-                            elif action == "roi":
-                                history_text += f"❌ {nguoi} đã rời lúc {time}\n"
-                            elif action == "sua_ten":
-                                history_text += f"✏️ {nguoi} đổi tên từ **{item['old_name']}** → **{item['new_name']}** lúc {time}\n"
-                            elif action == "them":
-                                history_text += f"➕ {nguoi_th} đã thêm {nguoi} ({item['ten']}) lúc {time}\n"
-                            elif action == "xoa":
-                                history_text += f"➖ {nguoi_th} đã xoá {nguoi} ({item['ten']}) lúc {time}\n"
-                        if history_text:
-                            embed.description = history_text
-                        else:
-                            embed.description = "📭 Chưa có lịch sử nào!"
-                        await interaction.response.send_message(embed=embed, ephemeral=True)
-        except Exception as e:
-            print(f"❌ Lỗi on_interaction: {e}")
-            traceback.print_exc()
-            if not interaction.response.is_done():
-                await interaction.response.send_message("❌ Đã xảy ra lỗi!", ephemeral=True)
 
     async def bang_dieu_khien(self):
         try:
