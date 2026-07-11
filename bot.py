@@ -122,12 +122,13 @@ async def phuc_hoi_event_tu_tin_nhan(bot):
                             ds_text = field.value
                             nguoi_tham_gia = {}
                             for line in ds_text.split("\n"):
-                                if "**" in line and "(@" in line:
-                                    match = re.search(r'@(\S+)\)', line)
-                                    match_uid = re.search(r'\*\*(\d+)\.\*\*\s+(.+?)\s+\(@', line)
-                                    if match_uid:
-                                        # Tìm uid từ dòng khác hoặc từ lịch sử
-                                        pass
+                                if "**" in line and "<@" in line:
+                                    match_uid = re.search(r'<@(\d+)>', line)
+                                    match_ten = re.search(r'\*\*\d+\.\*\*\s+(.+?)\s+\(<@', line)
+                                    if match_uid and match_ten:
+                                        uid = int(match_uid.group(1))
+                                        ten = match_ten.group(1).strip()
+                                        nguoi_tham_gia[uid] = ten
                             break
                     for field in embed.fields:
                         if field.name == "📌 TRẠNG THÁI":
@@ -560,11 +561,8 @@ async def cap_nhat_event():
         ds = ""
         if nguoi_tham_gia:
             for i, (uid, ten) in enumerate(nguoi_tham_gia.items(), 1):
-                user = bot.get_user(uid)
-                if user:
-                    ds += f"**{i}.** {ten} (@{user.name})\n"
-                else:
-                    ds += f"**{i}.** {ten} (`{uid}`)\n"
+                # Hiển thị: Tên Roblox (@tag_discord)
+                ds += f"**{i}.** {ten} (<@{uid}>)\n"
         else:
             ds = "Chưa có ai tham gia!"
         trang_thai = "Event đang mở tham gia" if cho_phep_tham_gia else "Event đã đóng tham gia"
@@ -667,7 +665,7 @@ class NutEventChinh(discord.ui.View):
             traceback.print_exc()
             await interaction.response.send_message("❌ Đã xảy ra lỗi!", ephemeral=True)
 
-# ===== SUA DS VIEW (ĐÃ SỬA) =====
+# ===== SUA DS VIEW =====
 class SuaDSView(discord.ui.View):
     def __init__(self):
         super().__init__(timeout=None)
@@ -768,8 +766,6 @@ class NutChonThang(discord.ui.View):
         self.vong = vong
         self.so_tran = so_tran
         self.da_chon = False
-        t1 = "ADMIN/MOD" if u1 == "admin" else nguoi_tham_gia.get(u1, "?")
-        t2 = "ADMIN/MOD" if u2 == "admin" else nguoi_tham_gia.get(u2, "?")
 
     async def interaction_check(self, interaction):
         try:
@@ -1077,52 +1073,34 @@ class GiaoDienServer(discord.ui.View):
 MAX_MAPS = 15
 
 def quet_divaz():
-    kq = []
-    ct = ""
+    """Quét map Divaz - lấy 1 map trống"""
     td = {'User-Agent': 'Mozilla/5.0'}
-    while True:
-        dd = f"https://games.roblox.com/v1/games/{ID_MAP}/servers/Public?limit=100"
-        if ct:
-            dd += f"&cursor={ct}"
-        try:
-            ph = requests.get(dd, headers=td, timeout=15, verify=False)
-            if ph.status_code == 200:
-                dl = ph.json()
-                cm = dl.get('data', [])
-                if not cm:
-                    break
+    try:
+        ph = requests.get(
+            f"https://games.roblox.com/v1/games/{ID_MAP}/servers/Public?limit=100",
+            headers=td,
+            timeout=15,
+            verify=False
+        )
+        if ph.status_code == 200:
+            dl = ph.json()
+            cm = dl.get('data', [])
+            if cm:
+                random.shuffle(cm)
                 for m in cm:
                     sn = m.get('playing', 0)
                     if sn < 5:
-                        existed = False
-                        for cached in cac_map_da_gui:
-                            if cached['id_may'] == m['id']:
-                                cached['so_nguoi_choi'] = sn
-                                existed = True
-                                break
-                        if not existed:
-                            kq.append({
-                                'id_may': m['id'],
-                                'so_nguoi_choi': sn,
-                                'ping': m.get('ping', '?'),
-                                'fps': m.get('fps', '?'),
-                                'toi_da': m.get('maxPlayers', '?')
-                            })
-                ct = dl.get('nextPageCursor')
-                if not ct:
-                    break
-                time.sleep(1)
-            else:
-                break
-        except Exception as e:
-            print(f"❌ Lỗi quet_divaz: {e}")
-            traceback.print_exc()
-            time.sleep(3)
-    all_maps = cac_map_da_gui + kq
-    if len(all_maps) > MAX_MAPS:
-        all_maps.sort(key=lambda x: x['so_nguoi_choi'], reverse=True)
-        all_maps = all_maps[:MAX_MAPS]
-    return all_maps
+                        return {
+                            'id_may': m['id'],
+                            'so_nguoi_choi': sn,
+                            'ping': m.get('ping', '?'),
+                            'fps': m.get('fps', '?'),
+                            'toi_da': m.get('maxPlayers', '?')
+                        }
+    except Exception as e:
+        print(f"❌ Lỗi quet_divaz: {e}")
+        traceback.print_exc()
+    return None
 
 # ===== SLASH COMMANDS =====
 @discord.app_commands.command(name="tat_tim_map", description="⏸️ Tạm dừng quét server Divaz")
@@ -1384,6 +1362,7 @@ class Bot(discord.Client):
             traceback.print_exc()
 
     async def on_ready(self):
+        global cac_map_da_gui
         try:
             nap_emoji_tu_may_chu(self)
             await phuc_hoi_event_tu_tin_nhan(self)
@@ -1393,6 +1372,10 @@ class Bot(discord.Client):
                 except Exception as e:
                     print(f"❌ Lỗi edit msg_event: {e}")
                     traceback.print_exc()
+            
+            # Reset danh sách map khi khởi động
+            cac_map_da_gui = []
+            
             await self.bang_dieu_khien()
             if not self.vong_lap_quet.is_running():
                 self.vong_lap_quet.start()
@@ -1409,7 +1392,7 @@ class Bot(discord.Client):
                     if t.author == self.user:
                         try:
                             await t.delete()
-                            await asyncio.sleep(0.5)
+                            await asyncio.sleep(1)
                         except:
                             pass
                 bang_kiem_tra = discord.Embed(
@@ -1430,7 +1413,7 @@ class Bot(discord.Client):
                     if t.author == self.user:
                         try:
                             await t.delete()
-                            await asyncio.sleep(0.5)
+                            await asyncio.sleep(1)
                         except:
                             pass
                 await kd.send(
@@ -1461,7 +1444,7 @@ class Bot(discord.Client):
                         if t.author == self.user:
                             try:
                                 await t.delete()
-                                await asyncio.sleep(0.5)
+                                await asyncio.sleep(1)
                             except:
                                 pass
                     bang_vai_tro = discord.Embed(
@@ -1479,7 +1462,7 @@ class Bot(discord.Client):
             print(f"❌ Lỗi bang_dieu_khien: {e}")
             traceback.print_exc()
 
-    @tasks.loop(seconds=360)
+    @tasks.loop(seconds=120)  # 2 phút scan 1 lần
     async def vong_lap_quet(self):
         global dang_quet, cac_map_da_gui
         if not dang_quet:
@@ -1491,44 +1474,59 @@ class Bot(discord.Client):
                 print("❌ Không tìm thấy channel:", ID_KENH_QUET)
                 return
 
-            async for msg in k.history(limit=100):
-                if msg.author == self.user:
-                    try:
-                        await msg.delete()
-                        await asyncio.sleep(0.5)
-                    except discord.HTTPException:
-                        pass
-
             map_moi = quet_divaz()
             if map_moi:
-                cac_map_da_gui = map_moi
-                for tn in cac_map_da_gui[:MAX_MAPS]:
-                    sn = tn['so_nguoi_choi']
-                    ma = tn['id_may'][-5:]
-                    ms = 0x00ff00 if sn <= 3 else 0xffaa00
-                    now = gio_vn()
-                    b = discord.Embed(
-                        title="🎮 DIVAZ - MÁY CHỦ TRỐNG",
-                        description=f"**Mã:** `#{ma}`",
-                        color=ms,
-                        timestamp=now
-                    )
-                    b.add_field(
-                        name="👥 NGƯỜI CHƠI",
-                        value=f"🟢 {sn}/{tn['toi_da']}" if sn <= 3 else f"🟡 {sn}/{tn['toi_da']}",
-                        inline=True
-                    )
-                    b.add_field(name="📶 PING", value=f"{tn['ping']}ms", inline=True)
-                    b.add_field(name="🎯 FPS", value=f"{tn['fps']}", inline=True)
-                    b.set_thumbnail(url=ANH_NHO)
-                    b.set_image(url=ANH_LON)
-                    b.set_footer(text=f"BotByPawPaw • {now.strftime('%H:%M:%S | %d/%m/%Y')}")
-                    try:
-                        await k.send(embed=b, view=GiaoDienServer(tn))
-                        await asyncio.sleep(0.3)
-                    except Exception as e:
-                        print(f"❌ Lỗi gửi embed: {e}")
-                        traceback.print_exc()
+                # Thêm vào danh sách
+                cac_map_da_gui.append(map_moi)
+                
+                # Giới hạn 15 map
+                if len(cac_map_da_gui) > MAX_MAPS:
+                    cac_map_da_gui = cac_map_da_gui[-MAX_MAPS:]
+                
+                # Gửi map mới
+                sn = map_moi['so_nguoi_choi']
+                ma = map_moi['id_may'][-5:]
+                ms = 0x00ff00 if sn <= 3 else 0xffaa00
+                now = gio_vn()
+                b = discord.Embed(
+                    title="🎮 DIVAZ - MÁY CHỦ TRỐNG",
+                    description=f"**Mã:** `#{ma}`",
+                    color=ms,
+                    timestamp=now
+                )
+                b.add_field(
+                    name="👥 NGƯỜI CHƠI",
+                    value=f"🟢 {sn}/{map_moi['toi_da']}" if sn <= 3 else f"🟡 {sn}/{map_moi['toi_da']}",
+                    inline=True
+                )
+                b.add_field(name="📶 PING", value=f"{map_moi['ping']}ms", inline=True)
+                b.add_field(name="🎯 FPS", value=f"{map_moi['fps']}", inline=True)
+                b.set_thumbnail(url=ANH_NHO)
+                b.set_image(url=ANH_LON)
+                b.set_footer(text=f"BotByPawPaw • {now.strftime('%H:%M:%S | %d/%m/%Y')}")
+                
+                await k.send(embed=b, view=GiaoDienServer(map_moi))
+                
+                # Xóa tin nhắn cũ khi có hơn 15 map (xóa từng cái, delay 2 giây)
+                if len(cac_map_da_gui) > MAX_MAPS:
+                    so_can_xoa = len(cac_map_da_gui) - MAX_MAPS
+                    async for msg in k.history(limit=100):
+                        if msg.author == self.user and so_can_xoa > 0:
+                            try:
+                                await msg.delete()
+                                await asyncio.sleep(2)  # Delay 2 giây để tránh rate limit
+                                so_can_xoa -= 1
+                            except discord.HTTPException as e:
+                                if e.status == 429:
+                                    print("⚠️ Rate limit, chờ 5 giây...")
+                                    await asyncio.sleep(5)
+                                pass
+                        else:
+                            break
+                    
+                    # Cập nhật lại danh sách sau khi xóa
+                    cac_map_da_gui = cac_map_da_gui[-MAX_MAPS:]
+                        
         except Exception as e:
             print(f"❌ Lỗi vong_lap_quet: {e}")
             traceback.print_exc()
