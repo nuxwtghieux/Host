@@ -2226,10 +2226,9 @@ class Bot(discord.Client):
             
             if custom_id == "nhap_the":
                 if user_id not in self.temp_data:
-                    await interaction.response.send_message("❌ Phiên làm việc của bạn đã hết (hoặc bạn đã bấm Hủy trước đó). Vui lòng dùng lại lệnh `/naptien card` để bắt đầu lại từ đầu nhé!", ephemeral=True)
+                    await interaction.response.send_message("⏳ Có vẻ bạn đã bấm Hủy trước đó hoặc phiên làm việc bị hết. Vui lòng dùng lại `/naptien card` từ đầu để hệ thống đảm bảo chính xác nhé!", ephemeral=True)
                     return
                 await interaction.response.send_modal(NhapTheModal())
-            
             elif custom_id == "huy_the":
                 try:
                     await interaction.message.delete()
