@@ -1349,6 +1349,135 @@ async def lichsunap(interaction: discord.Interaction):
         embed.add_field(name=f"💰 Lần {i}", value=f"**Số tiền:** {item['amount']:,} VND\n**Thời gian:** {item['time']}", inline=False)
     embed.set_footer(text="Hiển thị 10 lịch sử gần nhất")
     await interaction.response.send_message(embed=embed, ephemeral=True)
+@discord.app_commands.command(name="tru", description="💸 Trừ tiền của user (Admin/Mod - Dùng mọi channel)")
+@app_commands.describe(
+    user="Chọn user cần trừ tiền",
+    so_tien="Số tiền cần trừ (VND)",
+    ly_do="Lý do trừ tiền (tùy chọn)"
+)
+async def tru_tien(
+    interaction: discord.Interaction,
+    user: discord.User,
+    so_tien: int,
+    ly_do: str = None
+):
+    """Trừ tiền của user (Admin/Mod - Dùng mọi channel)"""
+    try:
+        # Kiểm tra quyền Admin/Mod
+        if not (la_quan_tri(interaction) or la_quan_tri_hoac_dieu_hanh(interaction)):
+            embed_error = discord.Embed(
+                title="❌ LỖI",
+                description="Chỉ Admin/Mod mới có quyền sử dụng lệnh này!",
+                color=0xff0000
+            )
+            await interaction.response.send_message(embed=embed_error, ephemeral=True)
+            return
+        
+        # Kiểm tra số tiền
+        if so_tien <= 0:
+            embed_error = discord.Embed(
+                title="❌ LỖI",
+                description="Số tiền phải lớn hơn 0!",
+                color=0xff0000
+            )
+            await interaction.response.send_message(embed=embed_error, ephemeral=True)
+            return
+        
+        user_id = user.id
+        so_du_hien_tai = vi_tien.get(user_id, 0)
+        
+        # Kiểm tra số dư
+        if so_du_hien_tai < so_tien:
+            embed_error = discord.Embed(
+                title="❌ LỖI",
+                description=f"User {user.mention} không đủ tiền!\n**Số dư hiện tại:** {so_du_hien_tai:,} VND\n**Cần trừ:** {so_tien:,} VND",
+                color=0xff0000
+            )
+            await interaction.response.send_message(embed=embed_error, ephemeral=True)
+            return
+        
+        # Trừ tiền
+        so_du_moi = so_du_hien_tai - so_tien
+        vi_tien[user_id] = so_du_moi
+        
+        # Cập nhật webhook
+        cap_nhat_webhook(user_id, so_du_moi, f"TRU_{int(time.time())}", "success")
+        
+        # Lưu lịch sử
+        if user_id not in lich_su_nap:
+            lich_su_nap[user_id] = []
+        lich_su_nap[user_id].append({
+            'time': datetime.now().strftime('%Y-%m-%d %H:%M:%S'),
+            'amount': -so_tien,
+            'content': f"TRỪ TIỀN - {ly_do if ly_do else 'Không có lý do'}",
+            'admin': interaction.user.id
+        })
+        
+        # Embed thành công
+        embed_success = discord.Embed(
+            title="✅ TRỪ TIỀN THÀNH CÔNG!",
+            description=f"Đã trừ **{so_tien:,} VND** của {user.mention}",
+            color=0x00ff00
+        )
+        embed_success.add_field(
+            name="📊 THÔNG TIN",
+            value=f"**User:** {user.mention} (`{user_id}`)\n"
+                  f"**Số tiền trừ:** {so_tien:,} VND\n"
+                  f"**Số dư cũ:** {so_du_hien_tai:,} VND\n"
+                  f"**Số dư mới:** {so_du_moi:,} VND\n"
+                  f"**Lý do:** {ly_do if ly_do else 'Không có'}\n"
+                  f"**Admin:** {interaction.user.mention}",
+            inline=False
+        )
+        embed_success.set_footer(text=f"BotPawPank • {datetime.now().strftime('%H:%M:%S %d/%m/%Y')}")
+        
+        await interaction.response.send_message(embed=embed_success)
+        
+        # Gửi thông báo cho user bị trừ tiền
+        try:
+            dm_embed = discord.Embed(
+                title="💸 BẠN ĐÃ BỊ TRỪ TIỀN",
+                description=f"Admin {interaction.user.mention} đã trừ **{so_tien:,} VND** trong ví của bạn!",
+                color=0xff0000
+            )
+            dm_embed.add_field(
+                name="📊 CHI TIẾT",
+                value=f"**Số tiền trừ:** {so_tien:,} VND\n"
+                      f"**Số dư cũ:** {so_du_hien_tai:,} VND\n"
+                      f"**Số dư mới:** {so_du_moi:,} VND\n"
+                      f"**Lý do:** {ly_do if ly_do else 'Không có'}\n"
+                      f"**Thời gian:** {datetime.now().strftime('%H:%M:%S %d/%m/%Y')}",
+                inline=False
+            )
+            dm_embed.set_footer(text="BotPawPank")
+            await user.send(embed=dm_embed)
+        except:
+            pass
+        
+        # Báo cáo Admin
+        await gui_bao_cao_admin(
+            bot,
+            title="📊 THÔNG BÁO TRỪ TIỀN",
+            description=f"Admin {interaction.user.mention} đã trừ tiền của {user.mention}",
+            color=0xffaa00,
+            fields=[
+                ("👤 User bị trừ", f"{user.mention} (`{user_id}`)"),
+                ("💰 Số tiền trừ", f"{so_tien:,} VND"),
+                ("📊 Số dư mới", f"{so_du_moi:,} VND"),
+                ("📝 Lý do", ly_do if ly_do else "Không có"),
+                ("👤 Admin thực hiện", interaction.user.mention)
+            ]
+        )
+        
+    except Exception as e:
+        print(f"❌ Lỗi tru_tien: {e}")
+        traceback.print_exc()
+        embed_error = discord.Embed(
+            title="❌ LỖI",
+            description=f"Đã xảy ra lỗi: {str(e)}",
+            color=0xff0000
+        )
+        await interaction.response.send_message(embed=embed_error, ephemeral=True)
 
 # ============================================================
 # PHẦN 16: BOT CHÍNH
