@@ -1563,7 +1563,7 @@ class NapTienGroup(app_commands.Group):
         
         tien_nhan_du_kien = int(so_tien - (so_tien * rate / 100))
         
-        temp_data[user.id] = {
+        interaction.client.temp_data[user.id] = {
             "loai_the": loai_the_value,
             "loai_the_name": loai_the_name,
             "menhgia": so_tien,
