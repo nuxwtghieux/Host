@@ -2225,8 +2225,6 @@ class Bot(discord.Client):
             user_id = interaction.user.id
             
             if custom_id == "nhap_the":
-                # Xóa dữ liệu rác nếu user spam nút nhanh
-                self.temp_data.pop(user_id, None)
                 
                 if user_id not in self.temp_data:
                     await interaction.response.send_message("⏳ Có vẻ bạn đã bấm Hủy trước đó hoặc phiên làm việc bị hết. Vui lòng dùng lại `/naptien card` từ đầu để hệ thống đảm bảo chính xác nhé!", ephemeral=True)
