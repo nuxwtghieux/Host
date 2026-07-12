@@ -1316,20 +1316,24 @@ MAX_MAPS = 15
 def quet_divaz():
     td = {'User-Agent': 'Mozilla/5.0'}
     try:
-        ph = requests.get(
-            f"https://games.roblox.com/v1/games/{ID_MAP}/servers/Public?limit=100",
-            headers=td,
-            timeout=15,
-            verify=False
-        )
+        url = f"https://games.roblox.com/v1/games/{ID_MAP}/servers/Public?limit=100"
+        print(f"🔍 [DEBUG] Đang quét: {url}")
+        
+        ph = requests.get(url, headers=td, timeout=15, verify=False)
+        print(f"📊 [DEBUG] Status: {ph.status_code}")
+        
         if ph.status_code == 200:
             dl = ph.json()
             cm = dl.get('data', [])
+            print(f"📦 [DEBUG] Tìm thấy {len(cm)} servers")
+            
             if cm:
                 random.shuffle(cm)
                 for m in cm:
                     sn = m.get('playing', 0)
+                    print(f"  └ Server {m['id'][:8]}... - {sn} players")  # In ra từng server
                     if sn < 5:
+                        print(f"✅ [DEBUG] Chọn server: {m['id']}")
                         return {
                             'id_may': m['id'],
                             'so_nguoi_choi': sn,
@@ -1337,11 +1341,16 @@ def quet_divaz():
                             'fps': m.get('fps', '?'),
                             'toi_da': m.get('maxPlayers', '?')
                         }
+                print("⚠️ [DEBUG] Không có server nào dưới 5 người")
+            else:
+                print("⚠️ [DEBUG] Không có server nào cả")
+        else:
+            print(f"❌ [DEBUG] Lỗi response: {ph.text[:200]}")
     except Exception as e:
-        print(f"❌ Lỗi quet_divaz: {e}")
+        print(f"❌ [DEBUG] Lỗi quét: {e}")
         traceback.print_exc()
     return None
-
+    
 # ============================================================
 # PHẦN 14: SLASH COMMANDS
 # ============================================================
