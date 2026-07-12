@@ -49,7 +49,7 @@ def trang_chu():
 def chay_may_chu_web():
     ung_dung.run(host='0.0.0.0', port=8080)
 
-# ===== API TỪ TERMUX (CỘNG VÀ TRỪ TIỀN) =====
+# ================== API CỘNG/TRỪ TỪ TERMUX ==================
 @ung_dung.route('/cong_tien', methods=['POST'])
 def api_cong_tien():
     try:
@@ -426,6 +426,108 @@ class BangKiemTraTien(discord.ui.Modal, title="Kiểm tra giá tiền"):
             traceback.print_exc()
             await tt.response.send_message("❌ Đã xảy ra lỗi!", ephemeral=True)
 
+class BangKiemTraSlay(discord.ui.Modal, title="Kiểm tra giá slay"):
+    sl = discord.ui.TextInput(label="Nhập số slay", placeholder="2000", required=True, max_length=20)
+    async def on_submit(self, tt):
+        try:
+            slay = int(self.sl.value.replace(",", "").replace(".", ""))
+        except:
+            return await tt.response.send_message("❌ Số không hợp lệ!", ephemeral=True)
+        try:
+            ngan_hang_goc = int(slay * 0.015)
+            the_goc = int(ngan_hang_goc * 1.15 + 10000)
+            vip = la_vip_nd(tt)
+            now = gio_vn()
+            bang = discord.Embed(title=f"💰 GIÁ CÀY SLAY HIỆN TẠI 💰", color=0x3498db)
+            mo_ta = (
+                f"\n━━━━━━━━━━━━━━━━━━━━━━\n"
+                f"💎ㆍ**Số slay cần cày:** **{slay:,} SLAY**\n"
+                "━━━━━━━━━━━━━━━━━━━━━━\n"
+                f"💳ㆍ**Chuyển khoản (Bank):** {ngan_hang_goc:,} VND\n"
+                "━━━━━━━━━━━━━━━━━━━━━━\n"
+                f"🔖ㆍ**Thẻ cào (Card):** {the_goc:,.0f} VND\n"
+                "━━━━━━━━━━━━━━━━━━━━━━\n"
+            )
+            if vip:
+                mo_ta += f"\n👑 {tt.user.mention}, bạn là **Thành viên VIP** nên được giảm **3%**!\n"
+            mo_ta += "\n‼️ **ÁP MÃ GIẢM GIÁ SẼ ĐƯỢC GIẢM TÙY THEO MÃ** ‼️"
+            bang.description = mo_ta
+            bang.set_image(url=ANH_GIF)
+            bang.set_footer(text=f"{now.strftime('%H:%M:%S | %d-%m-%Y')} | {tt.user.display_name}")
+            await tt.response.send_message(embed=bang, ephemeral=True)
+        except Exception as e:
+            print(f"❌ Lỗi BangKiemTraSlay: {e}")
+            traceback.print_exc()
+            await tt.response.send_message("❌ Đã xảy ra lỗi!", ephemeral=True)
+
+class BangTinhNguocTien(discord.ui.Modal, title="Tính ngược từ VND ra Tiền"):
+    sl = discord.ui.TextInput(label="Nhập số VND muốn trả", placeholder="100000", required=True, max_length=20)
+    async def on_submit(self, tt):
+        try:
+            vnd = int(self.sl.value.replace(",", "").replace(".", ""))
+        except:
+            return await tt.response.send_message("❌ Số không hợp lệ!", ephemeral=True)
+        try:
+            tien_nhan = int(vnd / 1.15 - 10000)
+            slay_nhan = int(vnd / 1.15 / 0.015 - 10000 / 1.15 / 0.015)
+            vip = la_vip_nd(tt)
+            now = gio_vn()
+            bang = discord.Embed(title=f"💰 TÍNH NGƯỢC VND RA TIỀN/SLAY 💰", color=0x3498db)
+            mo_ta = (
+                f"\n━━━━━━━━━━━━━━━━━━━━━━\n"
+                f"💵ㆍ**Số VND bỏ ra:** **{vnd:,} VND**\n"
+                "━━━━━━━━━━━━━━━━━━━━━━\n"
+                f"💰ㆍ**Tiền nhận được:** **{tien_nhan:,} TIỀN**\n"
+                "━━━━━━━━━━━━━━━━━━━━━━\n"
+                f"💎ㆍ**Slay nhận được:** **{slay_nhan:,} SLAY**\n"
+                "━━━━━━━━━━━━━━━━━━━━━━\n"
+            )
+            if vip:
+                mo_ta += f"\n👑 {tt.user.mention}, bạn là **Thành viên VIP** nên được giảm **3%**!\n"
+            mo_ta += "\n‼️ **ÁP MÃ GIẢM GIÁ SẼ ĐƯỢC GIẢM TÙY THEO MÃ** ‼️"
+            bang.description = mo_ta
+            bang.set_image(url=ANH_GIF)
+            bang.set_footer(text=f"{now.strftime('%H:%M:%S | %d-%m-%Y')} | {tt.user.display_name}")
+            await tt.response.send_message(embed=bang, ephemeral=True)
+        except Exception as e:
+            print(f"❌ Lỗi BangTinhNguocTien: {e}")
+            traceback.print_exc()
+            await tt.response.send_message("❌ Đã xảy ra lỗi!", ephemeral=True)
+
+class BangTinhNguocSlay(discord.ui.Modal, title="Tính ngược từ VND ra Slay"):
+    sl = discord.ui.TextInput(label="Nhập số VND muốn trả", placeholder="100000", required=True, max_length=20)
+    async def on_submit(self, tt):
+        try:
+            vnd = int(self.sl.value.replace(",", "").replace(".", ""))
+        except:
+            return await tt.response.send_message("❌ Số không hợp lệ!", ephemeral=True)
+        try:
+            tien_nhan = int(vnd / 1.15 - 10000)
+            slay_nhan = int(vnd / 1.15 / 0.015 - 10000 / 1.15 / 0.015)
+            vip = la_vip_nd(tt)
+            now = gio_vn()
+            bang = discord.Embed(title=f"💰 TÍNH NGƯỢC VND RA TIỀN/SLAY 💰", color=0x3498db)
+            mo_ta = (
+                f"\n━━━━━━━━━━━━━━━━━━━━━━\n"
+                f"💵ㆍ**Số VND bỏ ra:** **{vnd:,} VND**\n"
+                "━━━━━━━━━━━━━━━━━━━━━━\n"
+                f"💰ㆍ**Tiền nhận được:** **{tien_nhan:,} TIỀN**\n"
+                "━━━━━━━━━━━━━━━━━━━━━━\n"
+                f"💎ㆍ**Slay nhận được:** **{slay_nhan:,} SLAY**\n"
+                "━━━━━━━━━━━━━━━━━━━━━━\n"
+            )
+            if vip:
+                mo_ta += f"\n👑 {tt.user.mention}, bạn là **Thành viên VIP** nên được giảm **3%**!\n"
+            mo_ta += "\n‼️ **ÁP MÃ GIẢM GIÁ SẼ ĐƯỢC GIẢM TÙY THEO MÃ** ‼️"
+            bang.description = mo_ta
+            bang.set_image(url=ANH_GIF)
+            bang.set_footer(text=f"{now.strftime('%H:%M:%S | %d-%m-%Y')} | {tt.user.display_name}")
+            await tt.response.send_message(embed=bang, ephemeral=True)
+        except Exception as e:
+            print(f"❌ Lỗi BangTinhNguocSlay: {e}")
+            traceback.print_exc()
+            await tt.response.send_message("❌ Đã xảy ra lỗi!", ephemeral=True)
+
 class BangTaoDon(discord.ui.Modal, title="Tạo đơn"):
     dv = discord.ui.TextInput(label="Tiền/Slay:", placeholder="Tiền hoặc Slay", required=True, max_length=10)
     async def on_submit(self, tt):
@@ -697,7 +799,7 @@ class SuaDSView(discord.ui.View):
 
 class ChonTheView(discord.ui.View):
     def __init__(self, user_id):
-        super().__init__(timeout=None) # Đã sửa thành None để không bị hết phiên
+        super().__init__(timeout=None) # Đã sửa timeout để không bị hết phiên
         self.user_id = user_id
         self.add_item(discord.ui.Button(label="💳 Điền Seri/Mã thẻ", style=discord.ButtonStyle.green, custom_id="nhap_the"))
         self.add_item(discord.ui.Button(label="❌ Hủy", style=discord.ButtonStyle.red, custom_id="huy_the"))
@@ -714,9 +816,6 @@ class XacNhanTheView(discord.ui.View):
     async def huy_the_button(self, interaction: discord.Interaction, button: discord.ui.Button):
         await interaction.response.defer()
 
-# ============================================================
-# KHÔI PHỤC TICKET: XacNhanDongDon & DieuKhienDon
-# ============================================================
 class XacNhanDongDon(discord.ui.View):
     def __init__(self, channel, sd, id_nt, ldv):
         super().__init__(timeout=60)
@@ -769,9 +868,7 @@ class DieuKhienDon(discord.ui.View):
             traceback.print_exc()
             await tt.response.send_message("❌ Đã xảy ra lỗi!", ephemeral=True)
 
-# ============================================================
-# KHÔI PHỤC 4 NÚT CHECK GIÁ: GiaoDienKiemTraGia & GiaoDienTaoDon
-# ============================================================
+# ===== KHÔI PHỤC CÁC NÚT CHECK GIÁ VÀ TẠO ĐƠN =====
 class GiaoDienKiemTraGia(discord.ui.View):
     def __init__(self):
         super().__init__(timeout=None)
@@ -788,26 +885,29 @@ class GiaoDienKiemTraGia(discord.ui.View):
     @discord.ui.button(label="💅 Slay→VND", style=discord.ButtonStyle.blurple, custom_id="kt_slay")
     async def kt_slay(self, tt, n):
         try:
-            await tt.response.send_message("⏳ Tính năng đang phát triển!", ephemeral=True)
+            await tt.response.send_modal(BangKiemTraSlay())
         except Exception as e:
             print(f"❌ Lỗi kt_slay: {e}")
             traceback.print_exc()
+            await tt.response.send_message("❌ Đã xảy ra lỗi!", ephemeral=True)
 
     @discord.ui.button(label="💵 VND→Tiền", style=discord.ButtonStyle.blurple, custom_id="kt_vnd_tien")
     async def kt_vnd_tien(self, tt, n):
         try:
-            await tt.response.send_message("⏳ Tính năng đang phát triển!", ephemeral=True)
+            await tt.response.send_modal(BangTinhNguocTien())
         except Exception as e:
             print(f"❌ Lỗi kt_vnd_tien: {e}")
             traceback.print_exc()
+            await tt.response.send_message("❌ Đã xảy ra lỗi!", ephemeral=True)
 
     @discord.ui.button(label="💳 VND→Slay", style=discord.ButtonStyle.blurple, custom_id="kt_vnd_slay")
     async def kt_vnd_slay(self, tt, n):
         try:
-            await tt.response.send_message("⏳ Tính năng đang phát triển!", ephemeral=True)
+            await tt.response.send_modal(BangTinhNguocSlay())
         except Exception as e:
             print(f"❌ Lỗi kt_vnd_slay: {e}")
             traceback.print_exc()
+            await tt.response.send_message("❌ Đã xảy ra lỗi!", ephemeral=True)
 
 class GiaoDienTaoDon(discord.ui.View):
     def __init__(self):
@@ -1307,12 +1407,9 @@ async def sodu(interaction: discord.Interaction):
     embed.add_field(name="Số dư hiện tại", value=f"**{so_tien:,} VND**", inline=False)
     embed.set_footer(text=f"BotPawPank • {datetime.now().strftime('%H:%M:%S %d/%m/%Y')}")
     
-    # Logic phân biệt: Server thì gửi công khai, DM thì gửi riêng tư (ephemeral)
     if interaction.guild is not None:
-        # Đang ở trong Server -> Công khai (bỏ ephemeral=True)
         await interaction.response.send_message(embed=embed)
     else:
-        # Đang ở trong DM -> Riêng tư (giữ ephemeral=True)
         await interaction.response.send_message(embed=embed, ephemeral=True)
 
 @discord.app_commands.command(name="lichsunap", description="📋 Xem lịch sử nạp tiền")
@@ -1352,9 +1449,7 @@ async def tru_tien(
     so_tien: int,
     ly_do: str = None
 ):
-    """Trừ tiền của user (Admin/Mod - Dùng mọi channel)"""
     try:
-        # 1. Kiểm tra quyền Admin/Mod
         if not (la_quan_tri(interaction) or la_quan_tri_hoac_dieu_hanh(interaction)):
             embed_error = discord.Embed(
                 title="❌ LỖI",
@@ -1363,7 +1458,6 @@ async def tru_tien(
             )
             return await interaction.response.send_message(embed=embed_error, ephemeral=True)
         
-        # 2. Kiểm tra số tiền hợp lệ
         if so_tien <= 0:
             embed_error = discord.Embed(
                 title="❌ LỖI",
@@ -1375,7 +1469,6 @@ async def tru_tien(
         user_id = user.id
         so_du_hien_tai = vi_tien.get(user_id, 0)
         
-        # 3. Kiểm tra số dư
         if so_du_hien_tai < so_tien:
             embed_error = discord.Embed(
                 title="❌ LỖI",
@@ -1384,11 +1477,9 @@ async def tru_tien(
             )
             return await interaction.response.send_message(embed=embed_error, ephemeral=True)
         
-        # 4. Thực hiện trừ tiền
         so_du_moi = so_du_hien_tai - so_tien
         vi_tien[user_id] = so_du_moi
         
-        # 5. Cập nhật lịch sử và webhook
         if user_id not in lich_su_nap:
             lich_su_nap[user_id] = []
         lich_su_nap[user_id].append({
@@ -1398,7 +1489,6 @@ async def tru_tien(
             'admin': interaction.user.id
         })
         
-        # 6. Embed báo thành công cho Admin
         embed_success = discord.Embed(
             title="✅ TRỪ TIỀN THÀNH CÔNG!",
             description=f"Đã trừ **{so_tien:,} VND** của {user.mention}",
@@ -1416,7 +1506,6 @@ async def tru_tien(
         embed_success.set_footer(text=f"BotPawPank • {datetime.now().strftime('%H:%M:%S %d/%m/%Y')}")
         await interaction.response.send_message(embed=embed_success)
         
-        # 7. Gửi DM thông báo cho người bị trừ (Giống embed nạp thẻ)
         try:
             dm_embed = discord.Embed(
                 title="💸 BẠN ĐÃ BỊ TRỪ TIỀN",
@@ -1436,7 +1525,6 @@ async def tru_tien(
         except:
             pass
         
-        # 8. Báo cáo Admin
         await gui_bao_cao_admin(
             bot,
             title="📊 THÔNG BÁO TRỪ TIỀN",
@@ -1474,9 +1562,7 @@ async def cong_tien(
     so_tien: int,
     ly_do: str = None
 ):
-    """Cộng tiền của user (Admin/Mod - Dùng mọi channel)"""
     try:
-        # 1. Kiểm tra quyền Admin/Mod
         if not (la_quan_tri(interaction) or la_quan_tri_hoac_dieu_hanh(interaction)):
             embed_error = discord.Embed(
                 title="❌ LỖI",
@@ -1485,7 +1571,6 @@ async def cong_tien(
             )
             return await interaction.response.send_message(embed=embed_error, ephemeral=True)
         
-        # 2. Kiểm tra số tiền hợp lệ
         if so_tien <= 0:
             embed_error = discord.Embed(
                 title="❌ LỖI",
@@ -1497,11 +1582,9 @@ async def cong_tien(
         user_id = user.id
         so_du_hien_tai = vi_tien.get(user_id, 0)
         
-        # 3. Thực hiện cộng tiền
         so_du_moi = so_du_hien_tai + so_tien
         vi_tien[user_id] = so_du_moi
         
-        # 4. Cập nhật lịch sử và webhook
         if user_id not in lich_su_nap:
             lich_su_nap[user_id] = []
         lich_su_nap[user_id].append({
@@ -1511,11 +1594,9 @@ async def cong_tien(
             'admin': interaction.user.id
         })
         
-        # === QUAN TRỌNG: GỌI WEBHOOK ĐỂ WEB REPLIT TỰ CẬP NHẬT ===
+        # Gọi webhook để cập nhật web Replit
         cap_nhat_webhook(user_id, so_du_moi, f"DISCORD_ADMIN_{int(time.time())}", "success")
-        # ============================================================
 
-        # 5. Embed báo thành công cho Admin
         embed_success = discord.Embed(
             title="✅ CỘNG TIỀN THÀNH CÔNG!",
             description=f"Đã cộng **{so_tien:,} VND** vào ví {user.mention}",
@@ -1533,7 +1614,6 @@ async def cong_tien(
         embed_success.set_footer(text=f"BotPawPank • {datetime.now().strftime('%H:%M:%S %d/%m/%Y')}")
         await interaction.response.send_message(embed=embed_success)
         
-        # 6. Gửi DM thông báo GIỐNG HỆT NẠP THẺ THÀNH CÔNG cho user
         try:
             dm_embed = discord.Embed(
                 title="**✅ NẠP THẺ THÀNH CÔNG!**",
@@ -1548,7 +1628,6 @@ async def cong_tien(
         except:
             pass
         
-        # 7. Báo cáo Admin
         await gui_bao_cao_admin(
             bot,
             title="📊 THÔNG BÁO CỘNG TIỀN",
@@ -1613,7 +1692,6 @@ class Bot(discord.Client):
             self.add_view(DieuKhienDon())
             self.add_view(NutEventChinh())
             self.add_view(SuaDSView())
-            # Khởi động check giao dịch
             self.loop.create_task(self.check_giao_dich())
         except Exception as e:
             print(f"❌ Lỗi setup_hook: {e}")
@@ -1719,9 +1797,6 @@ class Bot(discord.Client):
             print(f"❌ Lỗi bang_dieu_khien: {e}")
             traceback.print_exc()
 
-    # ============================================================
-    # CHECK GIAO DỊCH TỰ ĐỘNG
-    # ============================================================
     async def check_giao_dich(self):
         await self.wait_until_ready()
         while not self.is_closed():
@@ -1836,9 +1911,6 @@ class Bot(discord.Client):
         except Exception as e:
             print(f"❌ Lỗi gửi DM thất bại: {e}")
 
-    # ============================================================
-    # VÒNG LẬP QUÉT MAP
-    # ============================================================
     @tasks.loop(seconds=120)
     async def vong_lap_quet(self):
         global dang_quet, cac_map_da_gui
@@ -1903,9 +1975,6 @@ class Bot(discord.Client):
             print(f"❌ Lỗi vong_lap_quet: {e}")
             traceback.print_exc()
 
-    # ============================================================
-    # REACTION ROLE
-    # ============================================================
     async def on_raw_reaction_add(self, dl):
         try:
             if dl.message_id != id_tin_nhan_phan_ung:
@@ -1946,9 +2015,6 @@ class Bot(discord.Client):
             print(f"❌ Lỗi on_raw_reaction_remove: {e}")
             traceback.print_exc()
 
-    # ============================================================
-    # WELCOME / GOODBYE
-    # ============================================================
     async def on_member_join(self, tv):
         try:
             k = self.get_channel(ID_KENH_CHAO_MUNG)
@@ -2001,9 +2067,6 @@ class Bot(discord.Client):
             print(f"❌ Lỗi on_member_remove: {e}")
             traceback.print_exc()
 
-    # ============================================================
-    # [FIXED] XỬ LÝ TƯƠNG TÁC NÚT (ON_INTERACTION) - CHUYỂN VÀO CLASS BOT
-    # ============================================================
     async def on_interaction(self, interaction):
         if interaction.type == discord.InteractionType.component:
             custom_id = interaction.data.get("custom_id")
@@ -2011,7 +2074,6 @@ class Bot(discord.Client):
             
             if custom_id == "nhap_the":
                 if user_id not in self.temp_data:
-                    # Đã sửa thông báo lỗi để user biết cần làm gì thay vì crash
                     await interaction.response.send_message("❌ Phiên làm việc của bạn đã hết (hoặc bạn đã bấm Hủy trước đó). Vui lòng dùng lại lệnh `/naptien card` để bắt đầu lại từ đầu nhé!", ephemeral=True)
                     return
                 await interaction.response.send_modal(NhapTheModal())
