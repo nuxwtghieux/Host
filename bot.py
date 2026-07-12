@@ -1430,7 +1430,6 @@ class Bot(discord.Client):
             self.add_view(DieuKhienDon())
             self.add_view(NutEventChinh())
             self.add_view(SuaDSView())
-            self.add_view(ChonTheView())
             # Khởi động check giao dịch
             self.loop.create_task(self.check_giao_dich())
         except Exception as e:
