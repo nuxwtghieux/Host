@@ -22,6 +22,8 @@ import aiohttp
 from datetime import datetime, timezone, timedelta
 from flask import Flask, request, jsonify
 
+DATA_FILE = "bot_data.json"
+
 # ===== ĐẶT MÚI GIỜ VIỆT NAM =====
 os.environ['TZ'] = 'Asia/Ho_Chi_Minh'
 try:
@@ -244,6 +246,46 @@ async def phuc_hoi_event_tu_tin_nhan(bot):
 # ============================================================
 # PHẦN 5: CÁC HÀM TIỆN ÍCH
 # ============================================================
+
+def luu_du_lieu():
+    """Lưu toàn bộ dữ liệu quan trọng ra file JSON để khi bot restart không mất tiền"""
+    try:
+        data = {
+            "vi_tien": vi_tien,
+            "lich_su_nap": lich_su_nap,
+            "danh_sach_cam": danh_sach_cam,
+            "pending_transactions": pending_transactions,
+            "nguoi_dung_bi_cam": list(nguoi_dung_bi_cam),
+            "dem_don": dem_don
+        }
+        with open(DATA_FILE, 'w', encoding='utf-8') as f:
+            json.dump(data, f, ensure_ascii=False, indent=2)
+        print(f"✅ Đã lưu dữ liệu vào {DATA_FILE}")
+    except Exception as e:
+        print(f"❌ Lỗi lưu dữ liệu: {e}")
+
+def tai_du_lieu():
+    """Tải dữ liệu từ file lên RAM khi bot khởi động"""
+    global vi_tien, lich_su_nap, danh_sach_cam, pending_transactions, nguoi_dung_bi_cam, dem_don
+    try:
+        if os.path.exists(DATA_FILE):
+            with open(DATA_FILE, 'r', encoding='utf-8') as f:
+                data = json.load(f)
+            
+            vi_tien = data.get("vi_tien", {})
+            lich_su_nap = data.get("lich_su_nap", {})
+            danh_sach_cam = data.get("danh_sach_cam", {})
+            pending_transactions = data.get("pending_transactions", {})
+            nguoi_dung_bi_cam = set(data.get("nguoi_dung_bi_cam", []))
+            dem_don = data.get("dem_don", 0)
+            
+            print(f"✅ Đã tải dữ liệu từ {DATA_FILE}")
+            print(f"   - Ví tiền: {len(vi_tien)} users")
+            return True
+    except Exception as e:
+        print(f"❌ Lỗi tải dữ liệu: {e}")
+    return False
+    
 def nap_emoji_tu_may_chu(bot):
     global EMOJI_CANH1, EMOJI_CANH2, EMOJI_BLINK2, EMOJI_BLINKK, EMOJI_TRON, EMOJI_COIN, BIEU_TUONG_PHAN_UNG
     try:
@@ -1782,6 +1824,7 @@ async def cong_tien(
         
         so_du_moi = so_du_hien_tai + so_tien
         vi_tien[user_id] = so_du_moi
+        luu_du_lieu()
         
         if user_id not in lich_su_nap:
             lich_su_nap[user_id] = []
@@ -1897,6 +1940,7 @@ class Bot(discord.Client):
     async def on_ready(self):
         global cac_map_da_gui
         try:
+            tai_du_lieu()
             nap_emoji_tu_may_chu(self)
             await phuc_hoi_event_tu_tin_nhan(self)
             if event_active and msg_event:
@@ -1905,7 +1949,13 @@ class Bot(discord.Client):
                 except Exception as e:
                     print(f"❌ Lỗi edit msg_event: {e}")
                     traceback.print_exc()
-            
+                                # Auto save mỗi 10 phút để tránh mất dữ liệu khi chết server
+                @tasks.loop(secon=10)
+                async def auto_save_data():
+                    luu_du_lieu()
+                    print("💾 Đã tự động lưu dữ liệu định kỳ.")
+        
+                auto_save_data.start()
             cac_map_da_gui = []
             
             await self.bang_dieu_khien()
@@ -2020,6 +2070,7 @@ class Bot(discord.Client):
                         if user_id not in vi_tien:
                             vi_tien[user_id] = 0
                         vi_tien[user_id] += tien_nhan
+                        luu_du_lieu()
                         
                         cap_nhat_webhook(user_id, tien_nhan, nap_id, "success")
                         
