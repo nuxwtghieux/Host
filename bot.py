@@ -269,6 +269,14 @@ def nap_emoji_tu_may_chu(bot):
         print(f"❌ Lỗi nap_emoji: {e}")
         traceback.print_exc()
 
+def lam_tron_the(ngan_hang):
+    the_tho = ngan_hang * 1.15 + 10000
+    phan_du = the_tho % 10000
+    return ((the_tho // 10000) + 1) * 10000 if phan_du >= 5000 else (the_tho // 10000) * 10000
+
+def lam_tron_ngan_hang(ngan_hang):
+    return int(round(ngan_hang / 1000) * 1000)
+
 def la_quan_tri(tt: discord.Interaction):
     try:
         tv = tt.user
@@ -303,9 +311,21 @@ def tinh_giam_gia(st, tt):
 def dinh_dang_gia(gg, giam, vip):
     return f"**{giam:,}** VND ~~{gg:,} VND~~ (VIP)" if vip and giam != gg else f"**{gg:,}** VND"
 
-# ============================================================
-# PHẦN 6: HÀM NẠP CARD
-# ============================================================
+async def gui_nhat_ky_don(bot, so_don, id_nt, nguoi_dong, ldv, ly_do="Không"):
+    try:
+        now = gio_vn()
+        nguoi_nhan = bot.get_user(ID_NGUOI_NHAN_LOG) or await bot.fetch_user(ID_NGUOI_NHAN_LOG)
+        bang = discord.Embed(title=f"# Đơn số {so_don}", color=0x3498db)
+        bang.add_field(name="🧑‍🦱 Người mở:", value=f"<@{id_nt}>" if id_nt else "?", inline=False)
+        bang.add_field(name="🧑‍🦱 Người đóng:", value=nguoi_dong, inline=False)
+        bang.add_field(name="🔖 Dịch vụ:", value=ldv, inline=False)
+        bang.add_field(name="⏰ Thời gian:", value=now.strftime('%H:%M:%S | %d-%m-%Y'), inline=False)
+        bang.add_field(name="📝 Lí do:", value=ly_do, inline=False)
+        await nguoi_nhan.send(embed=bang)
+    except Exception as e:
+        print(f"❌ Lỗi gui_nhat_ky_don: {e}")
+        traceback.print_exc()
+
 def lay_chiet_khau_tu_api(loai_the, menhgia):
     url = f"https://doithegiatot.com/api/cardrate?apikey={DOITHEGIATOT_API_KEY}"
     try:
@@ -400,18 +420,20 @@ class BangKiemTraTien(discord.ui.Modal, title="Kiểm tra giá tiền"):
         except:
             return await tt.response.send_message("❌ Số không hợp lệ!", ephemeral=True)
         try:
-            ngan_hang_goc = int(tien * 0.12)
-            the_goc = ngan_hang_goc * 1.15 + 10000
+            ngan_hang_goc = lam_tron_ngan_hang(int(tien * 0.12))
+            the_goc = lam_tron_the(ngan_hang_goc)
+            ngan_hang_giam = tinh_giam_gia(ngan_hang_goc, tt)
+            the_giam = tinh_giam_gia(the_goc, tt)
             vip = la_vip_nd(tt)
             now = gio_vn()
             bang = discord.Embed(title=f"💰 GIÁ CÀY TIỀN HIỆN TẠI 💰", color=0x3498db)
             mo_ta = (
-                f"\n━━━━━━━━━━━━━━━━━━━━━━\n"
+                "\n━━━━━━━━━━━━━━━━━━━━━━\n"
                 f"💵ㆍ**Số tiền cần cày:** **{tien:,} TIỀN**\n"
                 "━━━━━━━━━━━━━━━━━━━━━━\n"
-                f"💳ㆍ**Chuyển khoản (Bank):** {ngan_hang_goc:,} VND\n"
+                f"💳ㆍ**Chuyển khoản (Bank):** {dinh_dang_gia(ngan_hang_goc, ngan_hang_giam, vip)}\n"
                 "━━━━━━━━━━━━━━━━━━━━━━\n"
-                f"🔖ㆍ**Thẻ cào (Card):** {the_goc:,.0f} VND\n"
+                f"🔖ㆍ**Thẻ cào (Card):** {dinh_dang_gia(the_goc, the_giam, vip)}\n"
                 "━━━━━━━━━━━━━━━━━━━━━━\n"
             )
             if vip:
@@ -434,18 +456,22 @@ class BangKiemTraSlay(discord.ui.Modal, title="Kiểm tra giá slay"):
         except:
             return await tt.response.send_message("❌ Số không hợp lệ!", ephemeral=True)
         try:
-            ngan_hang_goc = int(slay * 0.015)
-            the_goc = int(ngan_hang_goc * 1.15 + 10000)
+            ngan_hang_goc = lam_tron_ngan_hang(int(slay * 25))
             vip = la_vip_nd(tt)
+            ngan_hang_giam = tinh_giam_gia(ngan_hang_goc, tt)
+            if ngan_hang_goc > 8000:
+                chuoi_the = dinh_dang_gia(lam_tron_the(ngan_hang_goc), tinh_giam_gia(lam_tron_the(ngan_hang_goc), tt), vip)
+            else:
+                chuoi_the = "Chỉ nhận card từ 400 SLAY!"
             now = gio_vn()
-            bang = discord.Embed(title=f"💰 GIÁ CÀY SLAY HIỆN TẠI 💰", color=0x3498db)
+            bang = discord.Embed(title=f"💅 GIÁ CÀY SLAY HIỆN TẠI 💅", color=0x3498db)
             mo_ta = (
-                f"\n━━━━━━━━━━━━━━━━━━━━━━\n"
-                f"💎ㆍ**Số slay cần cày:** **{slay:,} SLAY**\n"
+                "\n━━━━━━━━━━━━━━━━━━━━━━\n"
+                f"💅ㆍ**Số slay cần cày:** **{slay:,} SLAY**\n"
                 "━━━━━━━━━━━━━━━━━━━━━━\n"
-                f"💳ㆍ**Chuyển khoản (Bank):** {ngan_hang_goc:,} VND\n"
+                f"💳ㆍ**Chuyển khoản (Bank):** {dinh_dang_gia(ngan_hang_goc, ngan_hang_giam, vip)}\n"
                 "━━━━━━━━━━━━━━━━━━━━━━\n"
-                f"🔖ㆍ**Thẻ cào (Card):** {the_goc:,.0f} VND\n"
+                f"🔖ㆍ**Thẻ cào (Card):** {chuoi_the}\n"
                 "━━━━━━━━━━━━━━━━━━━━━━\n"
             )
             if vip:
@@ -460,26 +486,30 @@ class BangKiemTraSlay(discord.ui.Modal, title="Kiểm tra giá slay"):
             traceback.print_exc()
             await tt.response.send_message("❌ Đã xảy ra lỗi!", ephemeral=True)
 
-class BangTinhNguocTien(discord.ui.Modal, title="Tính ngược từ VND ra Tiền"):
-    sl = discord.ui.TextInput(label="Nhập số VND muốn trả", placeholder="100000", required=True, max_length=20)
+class BangVndSangTien(discord.ui.Modal, title="VND → Tiền cần cày"):
+    sl = discord.ui.TextInput(label="Nhập số VND", placeholder="50000", required=True, max_length=20)
     async def on_submit(self, tt):
         try:
             vnd = int(self.sl.value.replace(",", "").replace(".", ""))
         except:
             return await tt.response.send_message("❌ Số không hợp lệ!", ephemeral=True)
         try:
-            tien_nhan = int(vnd / 1.15 - 10000)
-            slay_nhan = int(vnd / 1.15 / 0.015 - 10000 / 1.15 / 0.015)
+            vnd_sau_giam = tinh_giam_gia(vnd, tt)
+            tien_nhan = int(vnd_sau_giam / 0.12)
+            ngan_hang_goc = lam_tron_ngan_hang(vnd_sau_giam)
+            ngan_hang_giam = tinh_giam_gia(ngan_hang_goc, tt)
+            the_goc = lam_tron_the(ngan_hang_goc)
+            the_giam = tinh_giam_gia(the_goc, tt)
             vip = la_vip_nd(tt)
             now = gio_vn()
-            bang = discord.Embed(title=f"💰 TÍNH NGƯỢC VND RA TIỀN/SLAY 💰", color=0x3498db)
+            bang = discord.Embed(title=f"💵 SỐ TIỀN CÀY BẠN NHẬN ĐƯỢC 💵", color=0xe67e22)
             mo_ta = (
-                f"\n━━━━━━━━━━━━━━━━━━━━━━\n"
-                f"💵ㆍ**Số VND bỏ ra:** **{vnd:,} VND**\n"
+                "\n━━━━━━━━━━━━━━━━━━━━━━\n"
+                f"💳ㆍ**Số VND bạn trả:** **{vnd:,} VND**\n"
                 "━━━━━━━━━━━━━━━━━━━━━━\n"
-                f"💰ㆍ**Tiền nhận được:** **{tien_nhan:,} TIỀN**\n"
+                f"💰ㆍ**Số tiền cày bạn nhận được:** **{tien_nhan:,} TIỀN**\n"
                 "━━━━━━━━━━━━━━━━━━━━━━\n"
-                f"💎ㆍ**Slay nhận được:** **{slay_nhan:,} SLAY**\n"
+                f"🔖ㆍ**Thẻ cào (Card):** {dinh_dang_gia(the_goc, the_giam, vip)}\n"
                 "━━━━━━━━━━━━━━━━━━━━━━\n"
             )
             if vip:
@@ -490,30 +520,36 @@ class BangTinhNguocTien(discord.ui.Modal, title="Tính ngược từ VND ra Ti�
             bang.set_footer(text=f"{now.strftime('%H:%M:%S | %d-%m-%Y')} | {tt.user.display_name}")
             await tt.response.send_message(embed=bang, ephemeral=True)
         except Exception as e:
-            print(f"❌ Lỗi BangTinhNguocTien: {e}")
+            print(f"❌ Lỗi BangVndSangTien: {e}")
             traceback.print_exc()
             await tt.response.send_message("❌ Đã xảy ra lỗi!", ephemeral=True)
 
-class BangTinhNguocSlay(discord.ui.Modal, title="Tính ngược từ VND ra Slay"):
-    sl = discord.ui.TextInput(label="Nhập số VND muốn trả", placeholder="100000", required=True, max_length=20)
+class BangVndSangSlay(discord.ui.Modal, title="VND → Slay"):
+    sl = discord.ui.TextInput(label="Nhập số VND", placeholder="50000", required=True, max_length=20)
     async def on_submit(self, tt):
         try:
             vnd = int(self.sl.value.replace(",", "").replace(".", ""))
         except:
             return await tt.response.send_message("❌ Số không hợp lệ!", ephemeral=True)
         try:
-            tien_nhan = int(vnd / 1.15 - 10000)
-            slay_nhan = int(vnd / 1.15 / 0.015 - 10000 / 1.15 / 0.015)
+            vnd_sau_giam = tinh_giam_gia(vnd, tt)
+            slay = int(vnd_sau_giam / 25)
+            ngan_hang_goc = lam_tron_ngan_hang(vnd_sau_giam)
+            ngan_hang_giam = tinh_giam_gia(ngan_hang_goc, tt)
             vip = la_vip_nd(tt)
+            if ngan_hang_goc > 8000:
+                chuoi_the = dinh_dang_gia(lam_tron_the(ngan_hang_goc), tinh_giam_gia(lam_tron_the(ngan_hang_goc), tt), vip)
+            else:
+                chuoi_the = "Chỉ nhận card từ 400 SLAY!"
             now = gio_vn()
-            bang = discord.Embed(title=f"💰 TÍNH NGƯỢC VND RA TIỀN/SLAY 💰", color=0x3498db)
+            bang = discord.Embed(title=f"💅 SỐ SLAY BẠN NHẬN ĐƯỢC 💅", color=0x9b59b6)
             mo_ta = (
-                f"\n━━━━━━━━━━━━━━━━━━━━━━\n"
-                f"💵ㆍ**Số VND bỏ ra:** **{vnd:,} VND**\n"
+                "\n━━━━━━━━━━━━━━━━━━━━━━\n"
+                f"💳ㆍ**Số VND bạn trả:** **{vnd:,} VND**\n"
                 "━━━━━━━━━━━━━━━━━━━━━━\n"
-                f"💰ㆍ**Tiền nhận được:** **{tien_nhan:,} TIỀN**\n"
+                f"💅ㆍ**Số slay bạn nhận được:** **{slay:,} SLAY**\n"
                 "━━━━━━━━━━━━━━━━━━━━━━\n"
-                f"💎ㆍ**Slay nhận được:** **{slay_nhan:,} SLAY**\n"
+                f"🔖ㆍ**Thẻ cào (Card):** {chuoi_the}\n"
                 "━━━━━━━━━━━━━━━━━━━━━━\n"
             )
             if vip:
@@ -524,7 +560,7 @@ class BangTinhNguocSlay(discord.ui.Modal, title="Tính ngược từ VND ra Slay
             bang.set_footer(text=f"{now.strftime('%H:%M:%S | %d-%m-%Y')} | {tt.user.display_name}")
             await tt.response.send_message(embed=bang, ephemeral=True)
         except Exception as e:
-            print(f"❌ Lỗi BangTinhNguocSlay: {e}")
+            print(f"❌ Lỗi BangVndSangSlay: {e}")
             traceback.print_exc()
             await tt.response.send_message("❌ Đã xảy ra lỗi!", ephemeral=True)
 
@@ -561,6 +597,26 @@ class BangTaoDon(discord.ui.Modal, title="Tạo đơn"):
             await tt.response.send_message(f"✅ {k.mention}", ephemeral=True)
         except Exception as e:
             print(f"❌ Lỗi BangTaoDon: {e}")
+            traceback.print_exc()
+            await tt.response.send_message("❌ Đã xảy ra lỗi!", ephemeral=True)
+
+class BangLyDoDong(discord.ui.Modal, title="Lý do đóng đơn"):
+    ld = discord.ui.TextInput(label="Lý do", required=True)
+    async def on_submit(self, tt):
+        try:
+            tn = tt.channel.name
+            p = tn.split("-")
+            sd = p[1] if len(p) > 1 else "???"
+            dl = tt.channel.topic
+            if dl and "|" in dl:
+                id_nt, ldv = dl.split("|", 1)
+            else:
+                id_nt = dl
+                ldv = "?"
+            await gui_nhat_ky_don(tt.client, sd, id_nt, tt.user.mention, ldv, self.ld.value)
+            await tt.channel.delete()
+        except Exception as e:
+            print(f"❌ Lỗi BangLyDoDong: {e}")
             traceback.print_exc()
             await tt.response.send_message("❌ Đã xảy ra lỗi!", ephemeral=True)
 
@@ -605,42 +661,41 @@ class SuaTenModal(discord.ui.Modal, title="Chỉnh sửa tên"):
             traceback.print_exc()
             await tt.response.send_message("❌ Đã xảy ra lỗi!", ephemeral=True)
 
-class NhapTheModal(discord.ui.Modal, title="💳 Nhập thông tin thẻ"):
-    pin = discord.ui.TextInput(label="🔢 Mã thẻ", placeholder="Nhập mã số trên thẻ", required=True, max_length=30)
-    seri = discord.ui.TextInput(label="🔢 Seri thẻ", placeholder="Nhập seri trên thẻ", required=True, max_length=30)
-    async def on_submit(self, interaction):
-        user_id = interaction.user.id
-        if user_id not in temp_data:
-            await interaction.response.send_message("❌ Hết phiên! Dùng `/naptien card` lại.", ephemeral=True)
-            return
-        data = temp_data[user_id]
-        if kiem_tra_bi_cam(user_id):
-            embed_error = discord.Embed(title="🚫 BỊ CẤM", description="Bạn đã bị cấm nạp thẻ! Liên hệ Admin!", color=0xff0000)
-            await interaction.response.send_message(embed=embed_error, ephemeral=True)
-            return
-        temp_data[user_id] = {
-            "loai_the": data["loai_the"],
-            "loai_the_name": data["loai_the_name"],
-            "menhgia": data["menhgia"],
-            "rate": data["rate"],
-            "tien_nhan_du_kien": data["tien_nhan_du_kien"],
-            "pin": self.pin.value,
-            "seri": self.seri.value
-        }
-        embed = discord.Embed(
-            title="**📋 XÁC NHẬN THÔNG TIN CARD**",
-            description="Hãy xem lại đã đúng mệnh giá, mã thẻ, serial hay chưa rồi mới gửi thẻ đi!",
-            color=0xffaa00
-        )
-        embed.add_field(name="**💳 LOẠI THẺ**", value=f"```{data['loai_the_name']}```", inline=True)
-        embed.add_field(name="💰 MỆNH GIÁ", value=f"```{data['menhgia']:,} VND```", inline=True)
-        embed.add_field(name="🔢 MÃ THẺ", value=f"```{self.pin.value}```", inline=True)
-        embed.add_field(name="🔢 SERI", value=f"```{self.seri.value}```", inline=True)
-        embed.add_field(name="💰 SỐ TIỀN NHẬN ĐƯỢC", value=f"```{data['tien_nhan_du_kien']:,} VND``` *(Chiết khấu {data['rate']}%)*", inline=False)
-        embed.add_field(name="⚠️ LƯU Ý", value="**• Sai mã thẻ bị trừ 50%!**\n**• Sai mệnh giá không cộng tiền!**\n**• Quá 2 lần sai bị cấm!**", inline=False)
-        embed.set_footer(text=f"PawPank • {datetime.now().strftime('%H:%M:%S %d/%m/%Y')}")
-        view = XacNhanTheView()
-        await interaction.response.send_message(embed=embed, view=view, ephemeral=True)
+class ThemNguoiModal(discord.ui.Modal, title="Thêm người vào danh sách"):
+    user_id = discord.ui.TextInput(label="ID Discord của người cần thêm", placeholder="Nhập ID (ví dụ: 123456789012345678)", required=True, max_length=20)
+    ten = discord.ui.TextInput(label="Tên Roblox", placeholder="Nhập tên Roblox của họ", required=True, max_length=50)
+    async def on_submit(self, tt):
+        global nguoi_tham_gia
+        try:
+            uid = int(self.user_id.value)
+            if uid in nguoi_tham_gia:
+                return await tt.response.send_message("❌ Người này đã có trong danh sách!", ephemeral=True)
+            nguoi_tham_gia[uid] = self.ten.value
+            them_lich_su("them", uid, tt.user.id, ten=self.ten.value)
+            await cap_nhat_event()
+            await tt.response.send_message(f"✅ Đã thêm <@{uid}> với tên **{self.ten.value}**!", ephemeral=True)
+        except Exception as e:
+            print(f"❌ Lỗi ThemNguoiModal: {e}")
+            traceback.print_exc()
+            await tt.response.send_message("❌ Đã xảy ra lỗi!", ephemeral=True)
+
+class XoaNguoiModal(discord.ui.Modal, title="Xoá người khỏi danh sách"):
+    user_id = discord.ui.TextInput(label="ID Discord của người cần xoá", placeholder="Nhập ID", required=True, max_length=20)
+    async def on_submit(self, tt):
+        global nguoi_tham_gia
+        try:
+            uid = int(self.user_id.value)
+            if uid not in nguoi_tham_gia:
+                return await tt.response.send_message("❌ Không tìm thấy người này trong danh sách!", ephemeral=True)
+            ten = nguoi_tham_gia[uid]
+            del nguoi_tham_gia[uid]
+            them_lich_su("xoa", uid, tt.user.id, ten=ten)
+            await cap_nhat_event()
+            await tt.response.send_message(f"✅ Đã xoá <@{uid}> khỏi danh sách!", ephemeral=True)
+        except Exception as e:
+            print(f"❌ Lỗi XoaNguoiModal: {e}")
+            traceback.print_exc()
+            await tt.response.send_message("❌ Đã xảy ra lỗi!", ephemeral=True)
 
 # ============================================================
 # PHẦN 9: HÀM CẬP NHẬT EVENT
@@ -799,7 +854,7 @@ class SuaDSView(discord.ui.View):
 
 class ChonTheView(discord.ui.View):
     def __init__(self, user_id):
-        super().__init__(timeout=None) # Đã sửa timeout để không bị hết phiên
+        super().__init__(timeout=None)
         self.user_id = user_id
         self.add_item(discord.ui.Button(label="💳 Điền Seri/Mã thẻ", style=discord.ButtonStyle.green, custom_id="nhap_the"))
         self.add_item(discord.ui.Button(label="❌ Hủy", style=discord.ButtonStyle.red, custom_id="huy_the"))
@@ -817,29 +872,91 @@ class XacNhanTheView(discord.ui.View):
         await interaction.response.defer()
 
 class XacNhanDongDon(discord.ui.View):
-    def __init__(self, channel, sd, id_nt, ldv):
-        super().__init__(timeout=60)
-        self.channel = channel
+    def __init__(self, k, sd, id_nt, ldv):
+        super().__init__(timeout=30)
+        self.k = k
         self.sd = sd
         self.id_nt = id_nt
         self.ldv = ldv
 
-    @discord.ui.button(label="✅ Xác nhận", style=discord.ButtonStyle.green, custom_id="xac_nhan_dong_don")
-    async def xac_nhan(self, tt: discord.Interaction, button: discord.ui.Button):
+    @discord.ui.button(label="✅ Xác nhận đóng", style=discord.ButtonStyle.red)
+    async def xn(self, tt, n):
         try:
             if not la_quan_tri_hoac_dieu_hanh(tt):
                 return await tt.response.send_message("❌ Không có quyền!", ephemeral=True)
-            await self.channel.delete()
+            await tt.response.send_message("🔒 Đang đóng...", ephemeral=True)
+            await gui_nhat_ky_don(tt.client, self.sd, self.id_nt, tt.user.mention, self.ldv)
+            await self.k.delete()
         except Exception as e:
-            print(f"❌ Lỗi xac_nhan_dong_don: {e}")
-            await tt.response.send_message("❌ Đã xảy ra lỗi khi xóa kênh!", ephemeral=True)
+            print(f"❌ Lỗi xn: {e}")
+            traceback.print_exc()
+            await tt.response.send_message("❌ Đã xảy ra lỗi!", ephemeral=True)
 
-    @discord.ui.button(label="❌ Hủy", style=discord.ButtonStyle.red, custom_id="huy_dong_don")
-    async def huy(self, tt: discord.Interaction, button: discord.ui.Button):
+    @discord.ui.button(label="❌ Hủy", style=discord.ButtonStyle.grey)
+    async def huy(self, tt, n):
         try:
-            await tt.response.edit_message(content="⛔ Đã hủy thao tác.", embed=None, view=None)
+            if not la_quan_tri_hoac_dieu_hanh(tt):
+                return await tt.response.send_message("❌ Không có quyền!", ephemeral=True)
+            await tt.message.delete()
+            await tt.response.send_message("❌ Đã hủy!", ephemeral=True)
         except Exception as e:
-            print(f"❌ Lỗi huy_dong_don: {e}")
+            print(f"❌ Lỗi huy: {e}")
+            traceback.print_exc()
+            await tt.response.send_message("❌ Đã xảy ra lỗi!", ephemeral=True)
+
+class BinhChonHoanThanh(discord.ui.View):
+    def __init__(self, k, sd, id_nt, ldv):
+        super().__init__(timeout=120)
+        self.k = k
+        self.sd = sd
+        self.id_nt = id_nt
+        self.ldv = ldv
+        self.nb = set()
+        self.dca = False
+        self.dcnt = False
+
+    @discord.ui.button(label="✅ Hoàn thành", style=discord.ButtonStyle.green)
+    async def ht(self, tt, n):
+        try:
+            nd = tt.user
+            la = la_quan_tri_hoac_dieu_hanh(tt)
+            lnt = str(nd.id) == str(self.id_nt)
+            if not la and not lnt:
+                return await tt.response.send_message("❌ Không có quyền!", ephemeral=True)
+            if nd.id in self.nb:
+                return await tt.response.send_message("❌ Đã bấm!", ephemeral=True)
+            self.nb.add(nd.id)
+            if la:
+                self.dca = True
+            if lnt:
+                self.dcnt = True
+            if self.dca and self.dcnt:
+                await tt.response.send_message("✅ Hoàn thành!", ephemeral=True)
+                await gui_nhat_ky_don(tt.client, self.sd, self.id_nt, tt.user.mention, self.ldv, "Đơn đã hoàn thành")
+                await self.k.delete()
+            else:
+                ct = []
+                if not self.dca:
+                    ct.append("Admin/Mod")
+                if not self.dcnt:
+                    ct.append("Người tạo")
+                await tt.response.send_message(f"✅ Cần thêm {' và '.join(ct)}!", ephemeral=True)
+        except Exception as e:
+            print(f"❌ Lỗi ht: {e}")
+            traceback.print_exc()
+            await tt.response.send_message("❌ Đã xảy ra lỗi!", ephemeral=True)
+
+    @discord.ui.button(label="❌ Hủy", style=discord.ButtonStyle.grey)
+    async def huy(self, tt, n):
+        try:
+            if not la_quan_tri_hoac_dieu_hanh(tt) and str(tt.user.id) != str(self.id_nt):
+                return await tt.response.send_message("❌ Không có quyền!", ephemeral=True)
+            await tt.message.delete()
+            await tt.response.send_message("❌ Đã hủy!", ephemeral=True)
+        except Exception as e:
+            print(f"❌ Lỗi huy: {e}")
+            traceback.print_exc()
+            await tt.response.send_message("❌ Đã xảy ra lỗi!", ephemeral=True)
 
 class DieuKhienDon(discord.ui.View):
     def __init__(self):
@@ -868,7 +985,41 @@ class DieuKhienDon(discord.ui.View):
             traceback.print_exc()
             await tt.response.send_message("❌ Đã xảy ra lỗi!", ephemeral=True)
 
-# ===== KHÔI PHỤC CÁC NÚT CHECK GIÁ VÀ TẠO ĐƠN =====
+    @discord.ui.button(label="✅ Hoàn thành đơn", style=discord.ButtonStyle.green, custom_id="hoan_thanh_don")
+    async def ht(self, tt, n):
+        try:
+            nd = tt.user
+            tn = tt.channel.name
+            p = tn.split("-")
+            sd = p[1] if len(p) > 1 else "???"
+            dl = tt.channel.topic
+            if dl and "|" in dl:
+                id_nt, ldv = dl.split("|", 1)
+            else:
+                id_nt = dl
+                ldv = "?"
+            if not la_quan_tri_hoac_dieu_hanh(tt) and str(nd.id) != str(id_nt):
+                return await tt.response.send_message("❌ Không có quyền!", ephemeral=True)
+            await tt.response.send_message(
+                embed=discord.Embed(title="✅ HOÀN THÀNH", description="Cần Admin/Mod VÀ Người tạo xác nhận!", color=0x00ff00),
+                view=BinhChonHoanThanh(tt.channel, sd, id_nt, ldv)
+            )
+        except Exception as e:
+            print(f"❌ Lỗi ht: {e}")
+            traceback.print_exc()
+            await tt.response.send_message("❌ Đã xảy ra lỗi!", ephemeral=True)
+
+    @discord.ui.button(label="🧾 Đóng kèm lý do", style=discord.ButtonStyle.grey, custom_id="dong_ly_do")
+    async def dld(self, tt, n):
+        try:
+            if not la_quan_tri_hoac_dieu_hanh(tt):
+                return await tt.response.send_message("❌ Không có quyền!", ephemeral=True)
+            await tt.response.send_modal(BangLyDoDong())
+        except Exception as e:
+            print(f"❌ Lỗi dld: {e}")
+            traceback.print_exc()
+            await tt.response.send_message("❌ Đã xảy ra lỗi!", ephemeral=True)
+
 class GiaoDienKiemTraGia(discord.ui.View):
     def __init__(self):
         super().__init__(timeout=None)
@@ -882,30 +1033,30 @@ class GiaoDienKiemTraGia(discord.ui.View):
             traceback.print_exc()
             await tt.response.send_message("❌ Đã xảy ra lỗi!", ephemeral=True)
 
-    @discord.ui.button(label="💅 Slay→VND", style=discord.ButtonStyle.blurple, custom_id="kt_slay")
-    async def kt_slay(self, tt, n):
+    @discord.ui.button(label="💅 Slay→VND", style=discord.ButtonStyle.green, custom_id="kt_slay")
+    async def ks(self, tt, n):
         try:
             await tt.response.send_modal(BangKiemTraSlay())
         except Exception as e:
-            print(f"❌ Lỗi kt_slay: {e}")
+            print(f"❌ Lỗi ks: {e}")
             traceback.print_exc()
             await tt.response.send_message("❌ Đã xảy ra lỗi!", ephemeral=True)
 
-    @discord.ui.button(label="💵 VND→Tiền", style=discord.ButtonStyle.blurple, custom_id="kt_vnd_tien")
-    async def kt_vnd_tien(self, tt, n):
+    @discord.ui.button(label="💵 VND→Tiền", style=discord.ButtonStyle.blurple, custom_id="vnd_tien")
+    async def vt(self, tt, n):
         try:
-            await tt.response.send_modal(BangTinhNguocTien())
+            await tt.response.send_modal(BangVndSangTien())
         except Exception as e:
-            print(f"❌ Lỗi kt_vnd_tien: {e}")
+            print(f"❌ Lỗi vt: {e}")
             traceback.print_exc()
             await tt.response.send_message("❌ Đã xảy ra lỗi!", ephemeral=True)
 
-    @discord.ui.button(label="💳 VND→Slay", style=discord.ButtonStyle.blurple, custom_id="kt_vnd_slay")
-    async def kt_vnd_slay(self, tt, n):
+    @discord.ui.button(label="💳 VND→Slay", style=discord.ButtonStyle.blurple, custom_id="vnd_slay")
+    async def vs(self, tt, n):
         try:
-            await tt.response.send_modal(BangTinhNguocSlay())
+            await tt.response.send_modal(BangVndSangSlay())
         except Exception as e:
-            print(f"❌ Lỗi kt_vnd_slay: {e}")
+            print(f"❌ Lỗi vs: {e}")
             traceback.print_exc()
             await tt.response.send_message("❌ Đã xảy ra lỗi!", ephemeral=True)
 
@@ -956,8 +1107,10 @@ async def gui_tran_dau(u1, u2):
         k = bot.get_channel(KENH_EVENT_ID)
         if not k:
             return
-        u1_ten = "ADMIN/MOD" if u1 == "admin" else nguoi_tham_gia.get(u1, "?")
-        u2_ten = "ADMIN/MOD" if u2 == "admin" else nguoi_tham_gia.get(u2, "?")
+        t1 = "ADMIN/MOD" if u1 == "admin" else nguoi_tham_gia.get(u1, "?")
+        t2 = "ADMIN/MOD" if u2 == "admin" else nguoi_tham_gia.get(u2, "?")
+        u1_ten = "ADMIN/MOD" if u1 == "admin" else (bot.get_user(u1).display_name if bot.get_user(u1) else t1)
+        u2_ten = "ADMIN/MOD" if u2 == "admin" else (bot.get_user(u2).display_name if bot.get_user(u2) else t2)
         embed = discord.Embed(
             title=f"🥊 TRẬN {len(ds_da_thang) + 1} - VÒNG {vong_hien_tai}",
             description=f"```{u1_ten}``` **VS** ```{u2_ten}```",
@@ -1594,7 +1747,6 @@ async def cong_tien(
             'admin': interaction.user.id
         })
         
-        # Gọi webhook để cập nhật web Replit
         cap_nhat_webhook(user_id, so_du_moi, f"DISCORD_ADMIN_{int(time.time())}", "success")
 
         embed_success = discord.Embed(
@@ -1651,7 +1803,7 @@ async def cong_tien(
             color=0xff0000
         )
         await interaction.response.send_message(embed=embed_error, ephemeral=True)
-        
+
 # ============================================================
 # PHẦN 16: BOT CHÍNH
 # ============================================================
