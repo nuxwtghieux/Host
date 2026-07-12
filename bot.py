@@ -24,6 +24,45 @@ from flask import Flask, request, jsonify
 
 DATA_FILE = "bot_data.json"
 
+def luu_du_lieu():
+    """Lưu toàn bộ dữ liệu quan trọng ra file JSON để khi bot restart không mất tiền"""
+    try:
+        data = {
+            "vi_tien": vi_tien,
+            "lich_su_nap": lich_su_nap,
+            "danh_sach_cam": danh_sach_cam,
+            "pending_transactions": pending_transactions,
+            "nguoi_dung_bi_cam": list(nguoi_dung_bi_cam),
+            "dem_don": dem_don
+        }
+        with open(DATA_FILE, 'w', encoding='utf-8') as f:
+            json.dump(data, f, ensure_ascii=False, indent=2)
+        print(f"✅ Đã lưu dữ liệu vào {DATA_FILE}")
+    except Exception as e:
+        print(f"❌ Lỗi lưu dữ liệu: {e}")
+
+def tai_du_lieu():
+    """Tải dữ liệu từ file lên RAM khi bot khởi động"""
+    global vi_tien, lich_su_nap, danh_sach_cam, pending_transactions, nguoi_dung_bi_cam, dem_don
+    try:
+        if os.path.exists(DATA_FILE):
+            with open(DATA_FILE, 'r', encoding='utf-8') as f:
+                data = json.load(f)
+            
+            vi_tien = data.get("vi_tien", {})
+            lich_su_nap = data.get("lich_su_nap", {})
+            danh_sach_cam = data.get("danh_sach_cam", {})
+            pending_transactions = data.get("pending_transactions", {})
+            nguoi_dung_bi_cam = set(data.get("nguoi_dung_bi_cam", []))
+            dem_don = data.get("dem_don", 0)
+            
+            print(f"✅ Đã tải dữ liệu từ {DATA_FILE}")
+            print(f"   - Ví tiền: {len(vi_tien)} users")
+            return True
+    except Exception as e:
+        print(f"❌ Lỗi tải dữ liệu: {e}")
+    return False
+    
 # ===== ĐẶT MÚI GIỜ VIỆT NAM =====
 os.environ['TZ'] = 'Asia/Ho_Chi_Minh'
 try:
@@ -246,43 +285,6 @@ async def phuc_hoi_event_tu_tin_nhan(bot):
 # ============================================================
 # PHẦN 5: CÁC HÀM TIỆN ÍCH
 # ============================================================
-
-def luu_du_lieu():
-    try:
-        data = {
-            "vi_tien": vi_tien,
-            "lich_su_nap": lich_su_nap,
-            "danh_sach_cam": danh_sach_cam,
-            "pending_transactions": pending_transactions,
-            "nguoi_dung_bi_cam": list(nguoi_dung_bi_cam),
-            "dem_don": dem_don
-        }
-        with open(DATA_FILE, 'w', encoding='utf-8') as f:
-            json.dump(data, f, ensure_ascii=False, indent=2)
-    except:
-        pass
-        
-def tai_du_lieu():
-    """Tải dữ liệu từ file lên RAM khi bot khởi động"""
-    global vi_tien, lich_su_nap, danh_sach_cam, pending_transactions, nguoi_dung_bi_cam, dem_don
-    try:
-        if os.path.exists(DATA_FILE):
-            with open(DATA_FILE, 'r', encoding='utf-8') as f:
-                data = json.load(f)
-            
-            vi_tien = data.get("vi_tien", {})
-            lich_su_nap = data.get("lich_su_nap", {})
-            danh_sach_cam = data.get("danh_sach_cam", {})
-            pending_transactions = data.get("pending_transactions", {})
-            nguoi_dung_bi_cam = set(data.get("nguoi_dung_bi_cam", []))
-            dem_don = data.get("dem_don", 0)
-            
-            print(f"✅ Đã tải dữ liệu từ {DATA_FILE}")
-            print(f"   - Ví tiền: {len(vi_tien)} users")
-            return True
-    except Exception as e:
-        print(f"❌ Lỗi tải dữ liệu: {e}")
-    return False
     
 def nap_emoji_tu_may_chu(bot):
     global EMOJI_CANH1, EMOJI_CANH2, EMOJI_BLINK2, EMOJI_BLINKK, EMOJI_TRON, EMOJI_COIN, BIEU_TUONG_PHAN_UNG
