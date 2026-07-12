@@ -248,7 +248,6 @@ async def phuc_hoi_event_tu_tin_nhan(bot):
 # ============================================================
 
 def luu_du_lieu():
-    """Lưu toàn bộ dữ liệu quan trọng ra file JSON để khi bot restart không mất tiền"""
     try:
         data = {
             "vi_tien": vi_tien,
@@ -260,10 +259,9 @@ def luu_du_lieu():
         }
         with open(DATA_FILE, 'w', encoding='utf-8') as f:
             json.dump(data, f, ensure_ascii=False, indent=2)
-        print(f"✅ Đã lưu dữ liệu vào {DATA_FILE}")
-    except Exception as e:
-        print(f"❌ Lỗi lưu dữ liệu: {e}")
-
+    except:
+        pass
+        
 def tai_du_lieu():
     """Tải dữ liệu từ file lên RAM khi bot khởi động"""
     global vi_tien, lich_su_nap, danh_sach_cam, pending_transactions, nguoi_dung_bi_cam, dem_don
@@ -1314,41 +1312,55 @@ async def ket_thuc_event():
 MAX_MAPS = 15
 
 def quet_divaz():
+    """Quét TẤT CẢ server Divaz để tìm server trống nhất"""
     td = {'User-Agent': 'Mozilla/5.0'}
+    tat_ca_server = []
+    cursor = ""
+    
     try:
-        url = f"https://games.roblox.com/v1/games/{ID_MAP}/servers/Public?limit=100"
-        print(f"🔍 [DEBUG] Đang quét: {url}")
-        
-        ph = requests.get(url, headers=td, timeout=15, verify=False)
-        print(f"📊 [DEBUG] Status: {ph.status_code}")
-        
-        if ph.status_code == 200:
+        while True:
+            url = f"https://games.roblox.com/v1/games/{ID_MAP}/servers/Public?limit=100"
+            if cursor:
+                url += f"&cursor={cursor}"
+            
+            ph = requests.get(url, headers=td, timeout=15, verify=False)
+            
+            if ph.status_code != 200:
+                break
+            
             dl = ph.json()
             cm = dl.get('data', [])
-            print(f"📦 [DEBUG] Tìm thấy {len(cm)} servers")
             
-            if cm:
-                random.shuffle(cm)
-                for m in cm:
-                    sn = m.get('playing', 0)
-                    print(f"  └ Server {m['id'][:8]}... - {sn} players")  # In ra từng server
-                    if sn < 5:
-                        print(f"✅ [DEBUG] Chọn server: {m['id']}")
-                        return {
-                            'id_may': m['id'],
-                            'so_nguoi_choi': sn,
-                            'ping': m.get('ping', '?'),
-                            'fps': m.get('fps', '?'),
-                            'toi_da': m.get('maxPlayers', '?')
-                        }
-                print("⚠️ [DEBUG] Không có server nào dưới 5 người")
-            else:
-                print("⚠️ [DEBUG] Không có server nào cả")
-        else:
-            print(f"❌ [DEBUG] Lỗi response: {ph.text[:200]}")
-    except Exception as e:
-        print(f"❌ [DEBUG] Lỗi quét: {e}")
-        traceback.print_exc()
+            if not cm:
+                break
+            
+            tat_ca_server.extend(cm)
+            
+            cursor = dl.get('nextPageCursor')
+            if not cursor:
+                break
+            
+            time.sleep(0.5)
+    
+    except:
+        pass
+    
+    if tat_ca_server:
+        # Sắp xếp server theo số người chơi tăng dần (ít người nhất lên đầu)
+        tat_ca_server.sort(key=lambda x: x.get('playing', 999))
+        
+        # Chọn server ít người nhất
+        for m in tat_ca_server:
+            sn = m.get('playing', 0)
+            if sn < 5:
+                return {
+                    'id_may': m['id'],
+                    'so_nguoi_choi': sn,
+                    'ping': m.get('ping', '?'),
+                    'fps': m.get('fps', '?'),
+                    'toi_da': m.get('maxPlayers', '?')
+                }
+    
     return None
     
 # ============================================================
@@ -1969,7 +1981,6 @@ class Bot(discord.Client):
             @tasks.loop(seconds=10)
             async def auto_save_data():
                 luu_du_lieu()
-                print("💾 Đã tự động lưu dữ liệu định kỳ.")
             auto_save_data.start()
             # =========================================================
             
