@@ -1949,23 +1949,26 @@ class Bot(discord.Client):
                 except Exception as e:
                     print(f"❌ Lỗi edit msg_event: {e}")
                     traceback.print_exc()
-                                # Auto save mỗi 10 phút để tránh mất dữ liệu khi chết server
-                @tasks.loop(secon=10)
-                async def auto_save_data():
-                    luu_du_lieu()
-                    print("💾 Đã tự động lưu dữ liệu định kỳ.")
-        
-                auto_save_data.start()
+            
             cac_map_da_gui = []
             
             await self.bang_dieu_khien()
             if not self.vong_lap_quet.is_running():
                 self.vong_lap_quet.start()
+            
+            # === THÊM AUTO SAVE RA NGOÀI TRY, NGAY TRƯỚC KHI IN "BOT SẴN SÀNG" ===
+            @tasks.loop(seconds=10)
+            async def auto_save_data():
+                luu_du_lieu()
+                print("💾 Đã tự động lưu dữ liệu định kỳ.")
+            auto_save_data.start()
+            # =========================================================
+            
             print(f"🚀 Bot sẵn sàng!")
         except Exception as e:
             print(f"❌ Lỗi on_ready: {e}")
             traceback.print_exc()
-
+            
     async def bang_dieu_khien(self):
         try:
             kkt = self.get_channel(ID_KENH_KIEM_TRA)
