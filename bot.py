@@ -18,6 +18,7 @@ import os
 import io
 import base64
 import threading
+import aiohttp  # <--- Đã thêm dòng này để sửa lỗi thiếu thư viện
 from datetime import datetime, timezone, timedelta
 from flask import Flask, request, jsonify
 
@@ -855,135 +856,7 @@ async def ket_thuc_event():
 # ============================================================
 # PHẦN 12: XỬ LÝ TƯƠNG TÁC NÚT (ON_INTERACTION)
 # ============================================================
-@bot.event
-async def on_interaction(interaction):
-    if interaction.type == discord.InteractionType.component:
-        custom_id = interaction.data.get("custom_id")
-        user_id = interaction.user.id
-        
-        if custom_id == "nhap_the":
-            if user_id not in temp_data:
-                await interaction.response.send_message("❌ Hết phiên! Dùng `/naptien card` lại.", ephemeral=True)
-                return
-            await interaction.response.send_modal(NhapTheModal())
-        
-        elif custom_id == "huy_the":
-            try:
-                await interaction.message.delete()
-            except:
-                pass
-            if user_id in temp_data:
-                del temp_data[user_id]
-            if user_id in bot.pending_messages:
-                try:
-                    await bot.pending_messages[user_id].delete()
-                    del bot.pending_messages[user_id]
-                except:
-                    pass
-        
-        elif custom_id == "gui_the":
-            data = temp_data.get(user_id)
-            if not data:
-                await interaction.response.send_message("❌ Hết phiên! Vui lòng thử lại.", ephemeral=True)
-                return
-            
-            pin = data["pin"]
-            seri = data["seri"]
-            loai_the = data["loai_the"]
-            loai_the_name = data["loai_the_name"]
-            menhgia = data["menhgia"]
-            rate = data["rate"]
-            tien_nhan_du_kien = data["tien_nhan_du_kien"]
-            requestid = f"THE{user_id}{menhgia}{int(time.time())}"[:25]
-            
-            del temp_data[user_id]
-            if user_id in bot.temp_data:
-                del bot.temp_data[user_id]
-            
-            if user_id in bot.pending_messages:
-                try:
-                    await bot.pending_messages[user_id].delete()
-                    del bot.pending_messages[user_id]
-                except:
-                    pass
-            
-            ket_qua = gui_the_doithegiatot(pin, seri, loai_the, menhgia, requestid)
-            
-            if not ket_qua:
-                embed_error = discord.Embed(title="❌ GỬI THẺ THẤT BẠI", description="Không thể kết nối đến Doithegiatot!", color=0xff0000)
-                await interaction.response.edit_message(content="", embed=embed_error, view=None)
-                return
-            
-            code = ket_qua.get('Code', 0)
-            message = ket_qua.get('Message', 'Lỗi không xác định')
-            task_id = ket_qua.get('TaskId')
-            wrong_price = ket_qua.get('wrongPrice', False)
-            
-            if code == 1:
-                if user_id not in pending_transactions:
-                    pending_transactions[user_id] = []
-                pending_transactions[user_id].append({
-                    "nap_id": requestid,
-                    "amount": menhgia,
-                    "status": "pending",
-                    "type": "card",
-                    "card_type": loai_the_name,
-                    "card_type_id": loai_the,
-                    "time": datetime.now().strftime('%H:%M:%S %d/%m/%Y'),
-                    "pin": pin,
-                    "seri": seri,
-                    "rate": rate,
-                    "tien_nhan_du_kien": tien_nhan_du_kien,
-                    "task_id": task_id
-                })
-                
-                bot.dang_check[task_id] = {
-                    "user_id": user_id,
-                    "nap_id": requestid,
-                    "amount": menhgia,
-                    "rate": rate,
-                    "loai_the": loai_the_name
-                }
-                print(f"📌 Đã thêm task {task_id} vào danh sách check")
-                
-                embed_success = discord.Embed(
-                    title="**✅ ĐÃ GỬI THẺ**",
-                    description=f"💳 Loại thẻ *{loai_the_name}*\nMệnh giá *{menhgia:,} VND*\nTiền nhận được: **{tien_nhan_du_kien:,} VND** *(Chiết khấu {rate}%)*",
-                    color=0x00ff00
-                )
-                embed_success.add_field(name="📝 Mã Giao Dịch", value=f"`{requestid}`", inline=False)
-                embed_success.set_footer(text=f"BotPawPank • {datetime.now().strftime('%H:%M:%S %d/%m/%Y')}")
-                
-                msg = await interaction.response.edit_message(content="", embed=embed_success, view=None)
-                bot.pending_messages[user_id] = msg
-                
-            else:
-                so_lan_sai = cap_nhat_lan_sai(user_id, pin, seri)
-                if so_lan_sai:
-                    asyncio.run_coroutine_threadsafe(
-                        gui_bao_cao_admin(
-                            bot,
-                            title="🚫 CẢNH BÁO: USER BỊ CẤM NẠP THẺ",
-                            description=f"User <@{user_id}> đã bị **CẤM** nạp thẻ!",
-                            color=0xff0000,
-                            fields=[
-                                ("👤 User", f"ID: `{user_id}`"),
-                                ("📊 Số lần sai", "2/2"),
-                                ("🔢 Mã thẻ sai", f"`{pin}`"),
-                                ("🔢 Seri sai", f"`{seri}`")
-                            ]
-                        ),
-                        bot.loop
-                    )
-                
-                embed_error = discord.Embed(title="❌ GỬI THẺ THẤT BẠI", description=f"{message}", color=0xff0000)
-                if wrong_price:
-                    embed_error.add_field(name="⚠️ LƯU Ý", value="Thẻ đúng nhưng **sai mệnh giá**! Vui lòng kiểm tra lại.", inline=False)
-                embed_error.add_field(name="📊 SỐ LẦN SAI", value=f"{danh_sach_cam.get(user_id, {}).get('so_lan_sai', 0)}/2", inline=False)
-                if so_lan_sai:
-                    embed_error.add_field(name="🚫 CẢNH BÁO", value="Bạn đã bị **CẤM** nạp thẻ! Liên hệ Admin!", inline=False)
-                
-                await interaction.response.edit_message(content="", embed=embed_error, view=None)
+# LƯU Ý: Phần này đã được chuyển vào bên trong class Bot để sửa lỗi biến bot chưa tồn tại.
 
 # ============================================================
 # PHẦN 13: QUÉT MAP
@@ -1349,6 +1222,7 @@ async def lichsunap(interaction: discord.Interaction):
         embed.add_field(name=f"💰 Lần {i}", value=f"**Số tiền:** {item['amount']:,} VND\n**Thời gian:** {item['time']}", inline=False)
     embed.set_footer(text="Hiển thị 10 lịch sử gần nhất")
     await interaction.response.send_message(embed=embed, ephemeral=True)
+
 @discord.app_commands.command(name="tru", description="💸 Trừ tiền của user (Admin/Mod - Dùng mọi channel)")
 @app_commands.describe(
     user="Chọn user cần trừ tiền",
@@ -1907,6 +1781,138 @@ class Bot(discord.Client):
         except Exception as e:
             print(f"❌ Lỗi on_member_remove: {e}")
             traceback.print_exc()
+
+    # ============================================================
+    # [FIXED] XỬ LÝ TƯƠNG TÁC NÚT (ON_INTERACTION) - CHUYỂN VÀO CLASS BOT
+    # ============================================================
+    async def on_interaction(self, interaction):
+        if interaction.type == discord.InteractionType.component:
+            custom_id = interaction.data.get("custom_id")
+            user_id = interaction.user.id
+            
+            if custom_id == "nhap_the":
+                if user_id not in self.temp_data:  # Đã sửa bot thành self
+                    await interaction.response.send_message("❌ Hết phiên! Dùng `/naptien card` lại.", ephemeral=True)
+                    return
+                await interaction.response.send_modal(NhapTheModal())
+            
+            elif custom_id == "huy_the":
+                try:
+                    await interaction.message.delete()
+                except:
+                    pass
+                if user_id in self.temp_data:
+                    del self.temp_data[user_id]
+                if user_id in self.pending_messages:
+                    try:
+                        await self.pending_messages[user_id].delete()
+                        del self.pending_messages[user_id]
+                    except:
+                        pass
+            
+            elif custom_id == "gui_the":
+                data = self.temp_data.get(user_id)
+                if not data:
+                    await interaction.response.send_message("❌ Hết phiên! Vui lòng thử lại.", ephemeral=True)
+                    return
+                
+                pin = data["pin"]
+                seri = data["seri"]
+                loai_the = data["loai_the"]
+                loai_the_name = data["loai_the_name"]
+                menhgia = data["menhgia"]
+                rate = data["rate"]
+                tien_nhan_du_kien = data["tien_nhan_du_kien"]
+                requestid = f"THE{user_id}{menhgia}{int(time.time())}"[:25]
+                
+                del self.temp_data[user_id]
+                if user_id in self.temp_data:
+                    del self.temp_data[user_id]
+                
+                if user_id in self.pending_messages:
+                    try:
+                        await self.pending_messages[user_id].delete()
+                        del self.pending_messages[user_id]
+                    except:
+                        pass
+                
+                ket_qua = gui_the_doithegiatot(pin, seri, loai_the, menhgia, requestid)
+                
+                if not ket_qua:
+                    embed_error = discord.Embed(title="❌ GỬI THẺ THẤT BẠI", description="Không thể kết nối đến Doithegiatot!", color=0xff0000)
+                    await interaction.response.edit_message(content="", embed=embed_error, view=None)
+                    return
+                
+                code = ket_qua.get('Code', 0)
+                message = ket_qua.get('Message', 'Lỗi không xác định')
+                task_id = ket_qua.get('TaskId')
+                wrong_price = ket_qua.get('wrongPrice', False)
+                
+                if code == 1:
+                    if user_id not in pending_transactions:
+                        pending_transactions[user_id] = []
+                    pending_transactions[user_id].append({
+                        "nap_id": requestid,
+                        "amount": menhgia,
+                        "status": "pending",
+                        "type": "card",
+                        "card_type": loai_the_name,
+                        "card_type_id": loai_the,
+                        "time": datetime.now().strftime('%H:%M:%S %d/%m/%Y'),
+                        "pin": pin,
+                        "seri": seri,
+                        "rate": rate,
+                        "tien_nhan_du_kien": tien_nhan_du_kien,
+                        "task_id": task_id
+                    })
+                    
+                    self.dang_check[task_id] = {
+                        "user_id": user_id,
+                        "nap_id": requestid,
+                        "amount": menhgia,
+                        "rate": rate,
+                        "loai_the": loai_the_name
+                    }
+                    print(f"📌 Đã thêm task {task_id} vào danh sách check")
+                    
+                    embed_success = discord.Embed(
+                        title="**✅ ĐÃ GỬI THẺ**",
+                        description=f"💳 Loại thẻ *{loai_the_name}*\nMệnh giá *{menhgia:,} VND*\nTiền nhận được: **{tien_nhan_du_kien:,} VND** *(Chiết khấu {rate}%)*",
+                        color=0x00ff00
+                    )
+                    embed_success.add_field(name="📝 Mã Giao Dịch", value=f"`{requestid}`", inline=False)
+                    embed_success.set_footer(text=f"BotPawPank • {datetime.now().strftime('%H:%M:%S %d/%m/%Y')}")
+                    
+                    msg = await interaction.response.edit_message(content="", embed=embed_success, view=None)
+                    self.pending_messages[user_id] = msg
+                    
+                else:
+                    so_lan_sai = cap_nhat_lan_sai(user_id, pin, seri)
+                    if so_lan_sai:
+                        asyncio.run_coroutine_threadsafe(
+                            gui_bao_cao_admin(
+                                self,
+                                title="🚫 CẢNH BÁO: USER BỊ CẤM NẠP THẺ",
+                                description=f"User <@{user_id}> đã bị **CẤM** nạp thẻ!",
+                                color=0xff0000,
+                                fields=[
+                                    ("👤 User", f"ID: `{user_id}`"),
+                                    ("📊 Số lần sai", "2/2"),
+                                    ("🔢 Mã thẻ sai", f"`{pin}`"),
+                                    ("🔢 Seri sai", f"`{seri}`")
+                                ]
+                            ),
+                            self.loop
+                        )
+                    
+                    embed_error = discord.Embed(title="❌ GỬI THẺ THẤT BẠI", description=f"{message}", color=0xff0000)
+                    if wrong_price:
+                        embed_error.add_field(name="⚠️ LƯU Ý", value="Thẻ đúng nhưng **sai mệnh giá**! Vui lòng kiểm tra lại.", inline=False)
+                    embed_error.add_field(name="📊 SỐ LẦN SAI", value=f"{danh_sach_cam.get(user_id, {}).get('so_lan_sai', 0)}/2", inline=False)
+                    if so_lan_sai:
+                        embed_error.add_field(name="🚫 CẢNH BÁO", value="Bạn đã bị **CẤM** nạp thẻ! Liên hệ Admin!", inline=False)
+                    
+                    await interaction.response.edit_message(content="", embed=embed_error, view=None)
 
 # ============================================================
 # PHẦN 17: CHẠY BOT
