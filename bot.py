@@ -1388,7 +1388,6 @@ class Bot(discord.Client):
             self.tree.add_command(cancelev)
             self.tree.add_command(lsnew)
             self.tree.add_command(sodu)
-            self.tree.add_command(lichsunap)
             self.tree.add_command(NapTienGroup(name="naptien", description="💰 Nạp tiền vào PawPank"))
             await self.tree.sync(guild=mc)
             await self.tree.sync()
