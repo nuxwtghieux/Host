@@ -696,7 +696,52 @@ class XoaNguoiModal(discord.ui.Modal, title="Xoá người khỏi danh sách"):
             print(f"❌ Lỗi XoaNguoiModal: {e}")
             traceback.print_exc()
             await tt.response.send_message("❌ Đã xảy ra lỗi!", ephemeral=True)
+            
+class NhapTheModal(discord.ui.Modal, title="💳 Nhập thông tin thẻ"):
+    pin = discord.ui.TextInput(label="🔢 Mã thẻ", placeholder="Nhập mã số trên thẻ", required=True, max_length=30)
+    seri = discord.ui.TextInput(label="🔢 Seri thẻ", placeholder="Nhập seri trên thẻ", required=True, max_length=30)
 
+    async def on_submit(self, interaction):
+        user_id = interaction.user.id
+        
+        # Lấy dữ liệu từ bot (tuyệt đối không dùng biến toàn cục temp_data)
+        if user_id not in interaction.client.temp_data:
+            await interaction.response.send_message("⏳ Phiên làm việc đã hết. Vui lòng dùng lại `/naptien card` để bắt đầu lại từ đầu nhé!", ephemeral=True)
+            return
+            
+        data = interaction.client.temp_data[user_id]
+        
+        if kiem_tra_bi_cam(user_id):
+            embed_error = discord.Embed(title="🚫 BỊ CẤM", description="Bạn đã bị cấm nạp thẻ! Liên hệ Admin!", color=0xff0000)
+            await interaction.response.send_message(embed=embed_error, ephemeral=True)
+            return
+            
+        # Lưu lại dữ liệu vào Bot để xác nhận
+        interaction.client.temp_data[user_id] = {
+            "loai_the": data["loai_the"],
+            "loai_the_name": data["loai_the_name"],
+            "menhgia": data["menhgia"],
+            "rate": data["rate"],
+            "tien_nhan_du_kien": data["tien_nhan_du_kien"],
+            "pin": self.pin.value,
+            "seri": self.seri.value
+        }
+        
+        embed = discord.Embed(
+            title="**📋 XÁC NHẬN THÔNG TIN CARD**",
+            description="Hãy xem lại đã đúng mệnh giá, mã thẻ, serial hay chưa rồi mới gửi thẻ đi!",
+            color=0xffaa00
+        )
+        embed.add_field(name="**💳 LOẠI THẺ**", value=f"```{data['loai_the_name']}```", inline=True)
+        embed.add_field(name="💰 MỆNH GIÁ", value=f"```{data['menhgia']:,} VND```", inline=True)
+        embed.add_field(name="🔢 MÃ THẺ", value=f"```{self.pin.value}```", inline=True)
+        embed.add_field(name="🔢 SERI", value=f"```{self.seri.value}```", inline=True)
+        embed.add_field(name="💰 SỐ TIỀN NHẬN ĐƯỢC", value=f"```{data['tien_nhan_du_kien']:,} VND``` *(Chiết khấu {data['rate']}%)*", inline=False)
+        embed.add_field(name="⚠️ LƯU Ý", value="**• Sai mã thẻ bị trừ 50%!**\n**• Sai mệnh giá không cộng tiền!**\n**• Quá 2 lần sai bị cấm!**", inline=False)
+        embed.set_footer(text=f"PawPank • {datetime.now().strftime('%H:%M:%S %d/%m/%Y')}")
+        view = XacNhanTheView()
+        await interaction.response.send_message(embed=embed, view=view, ephemeral=True)
+        
 # ============================================================
 # PHẦN 9: HÀM CẬP NHẬT EVENT
 # ============================================================
