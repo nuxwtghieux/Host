@@ -650,11 +650,17 @@ class ChonTheView(discord.ui.View):
 
 class XacNhanTheView(discord.ui.View):
     def __init__(self):
-        super().__init__(timeout=120)
-        self.add_item(discord.ui.Button(label="✅ Đồng ý gửi thẻ", style=discord.ButtonStyle.green, custom_id="gui_the"))
-        self.add_item(discord.ui.Button(label="❌ Hủy", style=discord.ButtonStyle.red, custom_id="huy_the"))
-
-class DieuKhienDon(discord.ui.View):
+        super().__init__(timeout=None) # Đã sửa timeout thành None (vô hạn)
+        
+    @discord.ui.button(label="✅ Đồng ý gửi thẻ", style=discord.ButtonStyle.green, custom_id="gui_the") # Đã thêm custom_id
+    async def gui_the_button(self, interaction: discord.Interaction, button: discord.ui.Button):
+        # Phần xử lý nút này sẽ do hàm on_interaction bên trong class Bot xử lý
+        # Nên chỉ cần nút này để gửi custom_id
+        await interaction.response.defer() 
+        
+    @discord.ui.button(label="❌ Hủy", style=discord.ButtonStyle.red, custom_id="huy_the") # Đã thêm custom_id
+    async def huy_the_button(self, interaction: discord.Interaction, button: discord.ui.Button):
+        await interaction.response.defer()class DieuKhienDon(discord.ui.View):
     def __init__(self):
         super().__init__(timeout=None)
 
@@ -1396,7 +1402,6 @@ class Bot(discord.Client):
             self.add_view(DieuKhienDon())
             self.add_view(NutEventChinh())
             self.add_view(SuaDSView())
-            self.add_view(XacNhanTheView())
             self.add_view(ChonTheView())
             # Khởi động check giao dịch
             self.loop.create_task(self.check_giao_dich())
