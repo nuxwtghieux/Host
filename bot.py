@@ -18,7 +18,7 @@ import os
 import io
 import base64
 import threading
-import aiohttp  # <--- Đã thêm dòng này để sửa lỗi thiếu thư viện
+import aiohttp
 from datetime import datetime, timezone, timedelta
 from flask import Flask, request, jsonify
 
@@ -650,17 +650,43 @@ class ChonTheView(discord.ui.View):
 
 class XacNhanTheView(discord.ui.View):
     def __init__(self):
-        super().__init__(timeout=None) # Đã sửa timeout thành None (vô hạn)
+        super().__init__(timeout=None)
         
-    @discord.ui.button(label="✅ Đồng ý gửi thẻ", style=discord.ButtonStyle.green, custom_id="gui_the") # Đã thêm custom_id
+    @discord.ui.button(label="✅ Đồng ý gửi thẻ", style=discord.ButtonStyle.green, custom_id="gui_the")
     async def gui_the_button(self, interaction: discord.Interaction, button: discord.ui.Button):
-        # Phần xử lý nút này sẽ do hàm on_interaction bên trong class Bot xử lý
-        # Nên chỉ cần nút này để gửi custom_id
         await interaction.response.defer() 
         
-    @discord.ui.button(label="❌ Hủy", style=discord.ButtonStyle.red, custom_id="huy_the") # Đã thêm custom_id
+    @discord.ui.button(label="❌ Hủy", style=discord.ButtonStyle.red, custom_id="huy_the")
     async def huy_the_button(self, interaction: discord.Interaction, button: discord.ui.Button):
-        await interaction.response.defer()class DieuKhienDon(discord.ui.View):
+        await interaction.response.defer()
+
+# ===== ĐÃ TÁCH CLASS XacNhanDongDon & DieuKhienDon RA RIÊNG =====
+class XacNhanDongDon(discord.ui.View):
+    def __init__(self, channel, sd, id_nt, ldv):
+        super().__init__(timeout=60)
+        self.channel = channel
+        self.sd = sd
+        self.id_nt = id_nt
+        self.ldv = ldv
+
+    @discord.ui.button(label="✅ Xác nhận", style=discord.ButtonStyle.green, custom_id="xac_nhan_dong_don")
+    async def xac_nhan(self, tt: discord.Interaction, button: discord.ui.Button):
+        try:
+            if not la_quan_tri_hoac_dieu_hanh(tt):
+                return await tt.response.send_message("❌ Không có quyền!", ephemeral=True)
+            await self.channel.delete()
+        except Exception as e:
+            print(f"❌ Lỗi xac_nhan_dong_don: {e}")
+            await tt.response.send_message("❌ Đã xảy ra lỗi khi xóa kênh!", ephemeral=True)
+
+    @discord.ui.button(label="❌ Hủy", style=discord.ButtonStyle.red, custom_id="huy_dong_don")
+    async def huy(self, tt: discord.Interaction, button: discord.ui.Button):
+        try:
+            await tt.response.edit_message(content="⛔ Đã hủy thao tác.", embed=None, view=None)
+        except Exception as e:
+            print(f"❌ Lỗi huy_dong_don: {e}")
+
+class DieuKhienDon(discord.ui.View):
     def __init__(self):
         super().__init__(timeout=None)
 
@@ -1209,7 +1235,9 @@ async def sodu(interaction: discord.Interaction):
         await interaction.response.send_message(embed=embed)
     else:
         # Đang ở trong DM -> Riêng tư (giữ ephemeral=True)
-        await interaction.response.send_message(embed=embed, ephemeral=True)@discord.app_commands.command(name="lichsunap", description="📋 Xem lịch sử nạp tiền")
+        await interaction.response.send_message(embed=embed, ephemeral=True)
+
+@discord.app_commands.command(name="lichsunap", description="📋 Xem lịch sử nạp tiền")
 async def lichsunap(interaction: discord.Interaction):
     user = interaction.user
     if user.id not in lich_su_nap or not lich_su_nap[user.id]:
