@@ -1196,9 +1196,14 @@ async def sodu(interaction: discord.Interaction):
     )
     embed.add_field(name="Số dư hiện tại", value=f"**{so_tien:,} VND**", inline=False)
     embed.set_footer(text=f"BotPawPank • {datetime.now().strftime('%H:%M:%S %d/%m/%Y')}")
-    await interaction.response.send_message(embed=embed, ephemeral=True)
-
-@discord.app_commands.command(name="lichsunap", description="📋 Xem lịch sử nạp tiền")
+    
+    # Logic phân biệt: Server thì gửi công khai, DM thì gửi riêng tư (ephemeral)
+    if interaction.guild is not None:
+        # Đang ở trong Server -> Công khai (bỏ ephemeral=True)
+        await interaction.response.send_message(embed=embed)
+    else:
+        # Đang ở trong DM -> Riêng tư (giữ ephemeral=True)
+        await interaction.response.send_message(embed=embed, ephemeral=True)@discord.app_commands.command(name="lichsunap", description="📋 Xem lịch sử nạp tiền")
 async def lichsunap(interaction: discord.Interaction):
     user = interaction.user
     if user.id not in lich_su_nap or not lich_su_nap[user.id]:
