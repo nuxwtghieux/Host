@@ -49,6 +49,60 @@ def trang_chu():
 def chay_may_chu_web():
     ung_dung.run(host='0.0.0.0', port=8080)
 
+# ===== API TỪ TERMUX (CỘNG VÀ TRỪ TIỀN) =====
+@ung_dung.route('/cong_tien', methods=['POST'])
+def api_cong_tien():
+    try:
+        data = request.json
+        user_id = int(data.get('user_id'))
+        so_tien = int(data.get('so_tien'))
+        ly_do = data.get('ly_do', 'Admin cộng thủ công qua API')
+
+        if user_id not in vi_tien:
+            vi_tien[user_id] = 0
+        vi_tien[user_id] += so_tien
+
+        if user_id not in lich_su_nap:
+            lich_su_nap[user_id] = []
+        lich_su_nap[user_id].append({
+            'time': datetime.now().strftime('%Y-%m-%d %H:%M:%S'),
+            'amount': so_tien,
+            'content': f"CỘNG TIỀN - {ly_do}",
+            'admin': 0
+        })
+        cap_nhat_webhook(user_id, vi_tien[user_id], f"API_CONG_{int(time.time())}", "success")
+        return jsonify({"status": "success", "message": f"Đã cộng {so_tien:,} VND"}), 200
+    except Exception as e:
+        return jsonify({"status": "error", "message": str(e)}), 400
+
+@ung_dung.route('/tru_tien', methods=['POST'])
+def api_tru_tien():
+    try:
+        data = request.json
+        user_id = int(data.get('user_id'))
+        so_tien = int(data.get('so_tien'))
+        ly_do = data.get('ly_do', 'Admin trừ thủ công qua API')
+
+        if user_id not in vi_tien:
+            vi_tien[user_id] = 0
+        if vi_tien[user_id] < so_tien:
+            return jsonify({"status": "error", "message": "Số dư không đủ để trừ!"}), 400
+            
+        vi_tien[user_id] -= so_tien
+        
+        if user_id not in lich_su_nap:
+            lich_su_nap[user_id] = []
+        lich_su_nap[user_id].append({
+            'time': datetime.now().strftime('%Y-%m-%d %H:%M:%S'),
+            'amount': -so_tien,
+            'content': f"TRỪ TIỀN - {ly_do}",
+            'admin': 0 
+        })
+        cap_nhat_webhook(user_id, vi_tien[user_id], f"API_TRU_{int(time.time())}", "success")
+        return jsonify({"status": "success", "message": f"Đã trừ {so_tien:,} VND"}), 200
+    except Exception as e:
+        return jsonify({"status": "error", "message": str(e)}), 400
+
 # ============================================================
 # PHẦN 2: CẤU HÌNH
 # ============================================================
@@ -643,7 +697,7 @@ class SuaDSView(discord.ui.View):
 
 class ChonTheView(discord.ui.View):
     def __init__(self, user_id):
-        super().__init__(timeout=120)
+        super().__init__(timeout=None) # Đã sửa thành None để không bị hết phiên
         self.user_id = user_id
         self.add_item(discord.ui.Button(label="💳 Điền Seri/Mã thẻ", style=discord.ButtonStyle.green, custom_id="nhap_the"))
         self.add_item(discord.ui.Button(label="❌ Hủy", style=discord.ButtonStyle.red, custom_id="huy_the"))
@@ -660,7 +714,9 @@ class XacNhanTheView(discord.ui.View):
     async def huy_the_button(self, interaction: discord.Interaction, button: discord.ui.Button):
         await interaction.response.defer()
 
-# ===== ĐÃ TÁCH CLASS XacNhanDongDon & DieuKhienDon RA RIÊNG =====
+# ============================================================
+# KHÔI PHỤC TICKET: XacNhanDongDon & DieuKhienDon
+# ============================================================
 class XacNhanDongDon(discord.ui.View):
     def __init__(self, channel, sd, id_nt, ldv):
         super().__init__(timeout=60)
@@ -713,6 +769,9 @@ class DieuKhienDon(discord.ui.View):
             traceback.print_exc()
             await tt.response.send_message("❌ Đã xảy ra lỗi!", ephemeral=True)
 
+# ============================================================
+# KHÔI PHỤC 4 NÚT CHECK GIÁ: GiaoDienKiemTraGia & GiaoDienTaoDon
+# ============================================================
 class GiaoDienKiemTraGia(discord.ui.View):
     def __init__(self):
         super().__init__(timeout=None)
@@ -725,6 +784,30 @@ class GiaoDienKiemTraGia(discord.ui.View):
             print(f"❌ Lỗi kt: {e}")
             traceback.print_exc()
             await tt.response.send_message("❌ Đã xảy ra lỗi!", ephemeral=True)
+
+    @discord.ui.button(label="💅 Slay→VND", style=discord.ButtonStyle.blurple, custom_id="kt_slay")
+    async def kt_slay(self, tt, n):
+        try:
+            await tt.response.send_message("⏳ Tính năng đang phát triển!", ephemeral=True)
+        except Exception as e:
+            print(f"❌ Lỗi kt_slay: {e}")
+            traceback.print_exc()
+
+    @discord.ui.button(label="💵 VND→Tiền", style=discord.ButtonStyle.blurple, custom_id="kt_vnd_tien")
+    async def kt_vnd_tien(self, tt, n):
+        try:
+            await tt.response.send_message("⏳ Tính năng đang phát triển!", ephemeral=True)
+        except Exception as e:
+            print(f"❌ Lỗi kt_vnd_tien: {e}")
+            traceback.print_exc()
+
+    @discord.ui.button(label="💳 VND→Slay", style=discord.ButtonStyle.blurple, custom_id="kt_vnd_slay")
+    async def kt_vnd_slay(self, tt, n):
+        try:
+            await tt.response.send_message("⏳ Tính năng đang phát triển!", ephemeral=True)
+        except Exception as e:
+            print(f"❌ Lỗi kt_vnd_slay: {e}")
+            traceback.print_exc()
 
 class GiaoDienTaoDon(discord.ui.View):
     def __init__(self):
@@ -884,11 +967,6 @@ async def ket_thuc_event():
     except Exception as e:
         print(f"❌ Lỗi ket_thuc_event: {e}")
         traceback.print_exc()
-
-# ============================================================
-# PHẦN 12: XỬ LÝ TƯƠNG TÁC NÚT (ON_INTERACTION)
-# ============================================================
-# LƯU Ý: Phần này đã được chuyển vào bên trong class Bot để sửa lỗi biến bot chưa tồn tại.
 
 # ============================================================
 # PHẦN 13: QUÉT MAP
@@ -1433,6 +1511,10 @@ async def cong_tien(
             'admin': interaction.user.id
         })
         
+        # === QUAN TRỌNG: GỌI WEBHOOK ĐỂ WEB REPLIT TỰ CẬP NHẬT ===
+        cap_nhat_webhook(user_id, so_du_moi, f"DISCORD_ADMIN_{int(time.time())}", "success")
+        # ============================================================
+
         # 5. Embed báo thành công cho Admin
         embed_success = discord.Embed(
             title="✅ CỘNG TIỀN THÀNH CÔNG!",
@@ -1928,8 +2010,9 @@ class Bot(discord.Client):
             user_id = interaction.user.id
             
             if custom_id == "nhap_the":
-                if user_id not in self.temp_data:  # Đã sửa bot thành self
-                    await interaction.response.send_message("❌ Hết phiên! Dùng `/naptien card` lại.", ephemeral=True)
+                if user_id not in self.temp_data:
+                    # Đã sửa thông báo lỗi để user biết cần làm gì thay vì crash
+                    await interaction.response.send_message("❌ Phiên làm việc của bạn đã hết (hoặc bạn đã bấm Hủy trước đó). Vui lòng dùng lại lệnh `/naptien card` để bắt đầu lại từ đầu nhé!", ephemeral=True)
                     return
                 await interaction.response.send_modal(NhapTheModal())
             
