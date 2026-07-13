@@ -1718,7 +1718,7 @@ async def tru_tien(
     ly_do: str = None
 ):
     try:
-        if not (la_quan_tri(interaction):
+        if not la_quan_tri(interaction):
             embed_error = discord.Embed(
                 title="❌ LỖI",
                 description="Chỉ Admin mới có quyền sử dụng lệnh này!",
@@ -1831,7 +1831,7 @@ async def cong_tien(
     ly_do: str = None
 ):
     try:
-        if not (la_quan_tri(interaction):
+        if not la_quan_tri(interaction):
             embed_error = discord.Embed(
                 title="❌ LỖI",
                 description="Chỉ Admin mới có quyền sử dụng lệnh này!",
