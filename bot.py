@@ -1770,6 +1770,19 @@ async def tru_tien(
         so_du_moi = so_du_hien_tai - so_tien
         vi_tien[user_id] = so_du_moi
         
+        # 1. Lưu xuống Replit
+        try:
+            luu_du_lieu()
+        except Exception as e:
+            print(f"⚠️ Lỗi khi luu_du_lieu (tru): {e}")
+
+        # ===== THÊM DÒNG NÀY: GỬI LOG VÀO KÊNH =====
+        try:
+            await gui_log_giao_dich(bot, user_id, so_du_moi, -so_tien, ly_do if ly_do else "Admin trừ")
+        except Exception as e:
+            print(f"⚠️ Lỗi khi gửi log trừ tiền: {e}")
+        # ============================================
+        
         if user_id not in lich_su_nap:
             lich_su_nap[user_id] = []
         lich_su_nap[user_id].append({
@@ -1796,6 +1809,7 @@ async def tru_tien(
         embed_success.set_footer(text=f"BotPawPank • {datetime.now().strftime('%H:%M:%S %d/%m/%Y')}")
         await interaction.response.send_message(embed=embed_success)
         
+        # Gửi DM cho user bị trừ tiền
         try:
             dm_embed = discord.Embed(
                 title="💸 BẠN ĐÃ BỊ TRỪ TIỀN",
@@ -1815,22 +1829,26 @@ async def tru_tien(
         except:
             pass
         
-        await gui_bao_cao_admin(
-            bot,
-            title="📊 THÔNG BÁO TRỪ TIỀN",
-            description=f"Admin {interaction.user.mention} đã trừ tiền của {user.mention}",
-            color=0xffaa00,
-            fields=[
-                ("👤 User bị trừ", f"{user.mention} (`{user_id}`)"),
-                ("💰 Số tiền trừ", f"{so_tien:,} VND"),
-                ("📊 Số dư mới", f"{so_du_moi:,} VND"),
-                ("📝 Lý do", ly_do if ly_do else "Không có"),
-                ("👤 Admin thực hiện", interaction.user.mention)
-            ]
-        )
+        # Báo cáo Admin
+        try:
+            await gui_bao_cao_admin(
+                bot,
+                title="📊 THÔNG BÁO TRỪ TIỀN",
+                description=f"Admin {interaction.user.mention} đã trừ tiền của {user.mention}",
+                color=0xffaa00,
+                fields=[
+                    ("👤 User bị trừ", f"{user.mention} (`{user_id}`)"),
+                    ("💰 Số tiền trừ", f"{so_tien:,} VND"),
+                    ("📊 Số dư mới", f"{so_du_moi:,} VND"),
+                    ("📝 Lý do", ly_do if ly_do else "Không có"),
+                    ("👤 Admin thực hiện", interaction.user.mention)
+                ]
+            )
+        except:
+            pass
         
     except Exception as e:
-        print(f"❌ Lỗi tru_tien: {e}")
+        print(f"❌ Lỗi tổng thể khi thực hiện /tru: {e}")
         traceback.print_exc()
         embed_error = discord.Embed(
             title="❌ LỖI",
@@ -1838,8 +1856,7 @@ async def tru_tien(
             color=0xff0000
         )
         await interaction.response.send_message(embed=embed_error, ephemeral=True)
-
-
+        
 @discord.app_commands.command(name="congtien", description="💰 Cộng tiền vào ví user (Admin - Cho phép nợ âm)")
 @app_commands.describe(
     user="Chọn user cần cộng tiền",
