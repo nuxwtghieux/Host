@@ -2419,6 +2419,114 @@ class Bot(discord.Client):
 # ============================================================
 bot = Bot()
 
+# ============================================================
+# ========== LỆNH PREFIX "!" & NÂNG CẤP /SODU ==============
+# ============================================================
+
+# 1. Nâng cấp lệnh /sodu (Xem của mình hoặc người khác)
+@discord.app_commands.command(name="sodutv", description="💰 Xem số dư của người khác (Admin/Mod)")
+@app_commands.describe(user="User cần check số dư")
+async def sodutv(interaction: discord.Interaction, user: discord.User):
+    if not (la_quan_tri(interaction) or la_quan_tri_hoac_dieu_hanh(interaction)):
+        return await interaction.response.send_message("❌ Chỉ Admin/Mod mới có quyền xem số dư người khác!", ephemeral=True)
+    
+    so_tien = vi_tien.get(user.id, 0)
+    embed = discord.Embed(
+        title="💰 SỐ DƯ USER",
+        description=f"**User:** {user.mention}\n**Số dư:** **{so_tien:,} VND**",
+        color=0x00ff00
+    )
+    embed.set_footer(text=f"BotPawPank • {datetime.now().strftime('%H:%M:%S %d/%m/%Y')}")
+    await interaction.response.send_message(embed=embed, ephemeral=True)
+
+
+# 2. Các lệnh Prefix "!" (Text Commands)
+@bot.event
+async def on_message(message):
+    # Không cho bot tự reply tin nhắn của chính nó
+    if message.author.bot:
+        return
+
+    # Chỉ xử lý lệnh nếu tin nhắn bắt đầu bằng "!"
+    if not message.content.startswith('!'):
+        return
+
+    # Chia nhỏ câu lệnh
+    args = message.content.split()
+    cmd = args[0].lower()
+
+    # === KIỂM TRA QUYỀN ADMIN/MOD CHO CÁC LỆNH ! ===
+    # Chỉ lấy member từ message (vì message không phải Interaction)
+    member = message.author
+    is_admin = member.guild_permissions.administrator
+    is_admin_or_mod = is_admin or any(r.id in [ID_QUAN_TRI, ID_DIEU_HANH] for r in member.roles)
+
+    # === LỆNH !AV (Lấy avatar) ===
+    if cmd == '!av':
+        if not is_admin_or_mod:
+            return await message.reply("❌ Chỉ Admin/Mod mới dùng lệnh này!")
+        
+        if len(args) < 2:
+            return await message.reply("❌ Sai cú pháp! Dùng: `!av @user`")
+        
+        try:
+            target = await commands.MemberConverter().convert(message, args[1])
+        except:
+            return await message.reply("❌ Không tìm thấy user này!")
+        
+        embed = discord.Embed(
+            title=f"🖼️ Avatar của {target.display_name}",
+            color=0x3498db
+        )
+        embed.set_image(url=target.display_avatar.url)
+        await message.reply(embed=embed)
+
+    # === LỆNH !LOCK (Cấm chat tất cả kênh) ===
+    elif cmd == '!lock':
+        if not is_admin:
+            return await message.reply("❌ Chỉ Admin mới dùng lệnh này!")
+        
+        if len(args) < 2:
+            return await message.reply("❌ Sai cú pháp! Dùng: `!lock @user`")
+        
+        try:
+            target = await commands.MemberConverter().convert(message, args[1])
+        except:
+            return await message.reply("❌ Không tìm thấy user này!")
+        
+        # Duyệt qua tất cả kênh text, cấm quyền gửi tin nhắn cho user đó
+        count = 0
+        for channel in message.guild.text_channels:
+            try:
+                await channel.set_permissions(target, send_messages=False)
+                count += 1
+            except:
+                pass
+        
+        await message.reply(f"🔒 Đã cấm **{target.mention}** chat ở **{count}** kênh text!")
+
+    # === LỆNH !BANKEH (Cấm chat 1 kênh cụ thể) ===
+    elif cmd == '!bankenh':
+        if not is_admin_or_mod:
+            return await message.reply("❌ Chỉ Admin/Mod mới dùng lệnh này!")
+        
+        if len(args) < 2:
+            return await message.reply("❌ Sai cú pháp! Dùng: `!bankenh @user`")
+        
+        try:
+            target = await commands.MemberConverter().convert(message, args[1])
+        except:
+            return await message.reply("❌ Không tìm thấy user này!")
+        
+        # Cấm user ngay tại kênh đang đứng
+        try:
+            await message.channel.set_permissions(target, send_messages=False)
+            await message.reply(f"🔇 Đã cấm **{target.mention}** nhắn tin ở kênh này!")
+        except:
+            await message.reply(f"❌ Không thể cấm {target.mention} ở kênh này (có thể đã cấm rồi hoặc quyền bot không đủ).")
+
+# (Nhớ giữ lại dòng bot.run dưới đây để chạy bot)
+
 if __name__ == '__main__':
     luong = threading.Thread(target=chay_may_chu_web)
     luong.start()
