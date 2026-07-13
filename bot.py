@@ -36,7 +36,6 @@ def luu_du_lieu():
         }
         with open(DATA_FILE, 'w', encoding='utf-8') as f:
             json.dump(data, f, ensure_ascii=False, indent=2)
-        print(f"✅ Đã lưu dữ liệu vào {DATA_FILE}")
     except Exception as e:
         print(f"❌ Lỗi lưu dữ liệu: {e}")
 
@@ -55,8 +54,6 @@ def tai_du_lieu():
             nguoi_dung_bi_cam = set(data.get("nguoi_dung_bi_cam", []))
             dem_don = data.get("dem_don", 0)
             
-            print(f"✅ Đã tải dữ liệu từ {DATA_FILE}")
-            print(f"   - Ví tiền: {len(vi_tien)} users")
             return True
     except Exception as e:
         print(f"❌ Lỗi tải dữ liệu: {e}")
@@ -324,9 +321,12 @@ def lam_tron_ngan_hang(ngan_hang):
 def la_quan_tri(tt: discord.Interaction):
     try:
         tv = tt.user
-        if tv.guild_permissions.administrator:
-            return True
-        return any(r.id == ID_QUAN_TRI for r in tv.roles)
+        if tt.guild is not None:
+            if tv.guild_permissions.administrator:
+                return True
+            return any(r.id == ID_QUAN_TRI for r in tv.roles)
+        else:
+            return tv.id == ADMIN_ID
     except Exception as e:
         print(f"❌ Lỗi la_quan_tri: {e}")
         traceback.print_exc()
@@ -335,12 +335,15 @@ def la_quan_tri(tt: discord.Interaction):
 def la_quan_tri_hoac_dieu_hanh(tt: discord.Interaction):
     try:
         tv = tt.user
-        return any(r.id in [ID_QUAN_TRI, ID_DIEU_HANH] for r in tv.roles)
+        if tt.guild is not None:
+            return any(r.id in [ID_QUAN_TRI, ID_DIEU_HANH] for r in tv.roles)
+        else:
+            return tv.id == ADMIN_ID
     except Exception as e:
         print(f"❌ Lỗi la_quan_tri_hoac_dieu_hanh: {e}")
         traceback.print_exc()
         return False
-
+        
 def la_vip_nd(tt: discord.Interaction):
     try:
         return any(r.id == ID_VIP for r in tt.user.roles)
@@ -1702,7 +1705,7 @@ async def lichsunap(interaction: discord.Interaction):
     embed.set_footer(text="Hiển thị 10 lịch sử gần nhất")
     await interaction.response.send_message(embed=embed, ephemeral=True)
 
-@discord.app_commands.command(name="tru", description="💸 Trừ tiền của user (Admin/Mod - Dùng mọi channel)")
+@discord.app_commands.command(name="tru", description="💸 Trừ tiền của user (Admin)")
 @app_commands.describe(
     user="Chọn user cần trừ tiền",
     so_tien="Số tiền cần trừ (VND)",
@@ -1715,10 +1718,10 @@ async def tru_tien(
     ly_do: str = None
 ):
     try:
-        if not (la_quan_tri(interaction) or la_quan_tri_hoac_dieu_hanh(interaction)):
+        if not (la_quan_tri(interaction):
             embed_error = discord.Embed(
                 title="❌ LỖI",
-                description="Chỉ Admin/Mod mới có quyền sử dụng lệnh này!",
+                description="Chỉ Admin mới có quyền sử dụng lệnh này!",
                 color=0xff0000
             )
             return await interaction.response.send_message(embed=embed_error, ephemeral=True)
@@ -1815,7 +1818,7 @@ async def tru_tien(
         await interaction.response.send_message(embed=embed_error, ephemeral=True)
 
 
-@discord.app_commands.command(name="congtien", description="💰 Cộng tiền vào ví user (Admin/Mod - Dùng mọi channel)")
+@discord.app_commands.command(name="congtien", description="💰 Cộng tiền vào ví user (Admin)")
 @app_commands.describe(
     user="Chọn user cần cộng tiền",
     so_tien="Số tiền cần cộng (VND)",
@@ -1828,10 +1831,10 @@ async def cong_tien(
     ly_do: str = None
 ):
     try:
-        if not (la_quan_tri(interaction) or la_quan_tri_hoac_dieu_hanh(interaction)):
+        if not (la_quan_tri(interaction):
             embed_error = discord.Embed(
                 title="❌ LỖI",
-                description="Chỉ Admin/Mod mới có quyền sử dụng lệnh này!",
+                description="Chỉ Admin mới có quyền sử dụng lệnh này!",
                 color=0xff0000
             )
             return await interaction.response.send_message(embed=embed_error, ephemeral=True)
