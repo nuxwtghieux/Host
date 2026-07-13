@@ -38,7 +38,6 @@ def luu_du_lieu():
                 "status": "success"
             }
             requests.post(REPLIT_NAP_API, json=data, timeout=5)
-        print("✅ Đã đồng bộ dữ liệu lên Replit")
     except Exception as e:
         print(f"❌ Lỗi đồng bộ lên Replit: {e}")
 
