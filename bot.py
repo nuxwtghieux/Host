@@ -1,6 +1,4 @@
-# ============================================================
-# PHẦN 1: IMPORT & CẤU HÌNH
-# ============================================================
+# phần 1
 import discord
 from discord.ext import tasks
 from discord import app_commands
@@ -22,26 +20,7 @@ import aiohttp
 from datetime import datetime, timezone, timedelta
 from flask import Flask, request, jsonify
 
-# Đường dẫn API của Replit (đã có sẵn route /api/nap)
-REPLIT_NAP_API = "https://flask-webhook-service--trunghieugun09.replit.app/api/nap"
-
-def luu_du_lieu():
-    """Gửi dữ liệu lên Replit để lưu trữ (tự động cộng dồn)"""
-    try:
-        for user_id, so_tien in vi_tien.items():
-            nap_id = f"SYNC_{user_id}_{int(time.time())}"
-            data = {
-                "user_id": str(user_id),
-                "amount": so_tien,
-                "nap_id": nap_id,
-                "status": "success"
-            }
-            requests.post(REPLIT_NAP_API, json=data, timeout=5)
-        print("✅ Đã đồng bộ dữ liệu lên Replit")
-    except Exception as e:
-        print(f"❌ Lỗi đồng bộ lên Replit: {e}")
-
-# ===== ĐẶT MÚI GIỜ VIỆT NAM =====
+# phần 2
 os.environ['TZ'] = 'Asia/Ho_Chi_Minh'
 try:
     time.tzset()
@@ -51,14 +30,12 @@ except:
 def gio_vn():
     return datetime.now(timezone(timedelta(hours=7)))
 
-# ===== TẮT NHẬT KÝ =====
 urllib3.disable_warnings()
 warnings.filterwarnings("ignore")
 logging.getLogger("urllib3").setLevel(logging.CRITICAL)
 logging.getLogger("requests").setLevel(logging.CRITICAL)
 logging.getLogger("discord").setLevel(logging.WARNING)
 
-# ===== MÁY CHỦ WEB FLASK =====
 ung_dung = Flask(__name__)
 
 @ung_dung.route('/')
@@ -68,51 +45,46 @@ def trang_chu():
 def chay_may_chu_web():
     ung_dung.run(host='0.0.0.0', port=8080)
 
-# ============================================================
-# PHẦN 2: CẤU HÌNH
-# ============================================================
-MA_BOT = os.getenv('DISCORD_TOKEN')
-ID_MAY_CHU = 1509102064784117821
-ID_KENH_KIEM_TRA = 1523606725318676532
-ID_KENH_DON = 1523604635816820856
-ID_DANH_MUC_DON = 1523595672861933569
-ID_QUAN_TRI = 1511311539896979466
-ID_DIEU_HANH = 1523739463610536217
-ID_VIP = 1523974551879417917
-ID_MEMBER_PAW = 1523599853882703882
-ID_NGUOI_NHAN_LOG = 1507006947755430069
-ID_KENH_CHAO_MUNG = 1523598483632947281
-ID_KENH_TAM_BIET = 1523602359605919746
-ID_KENH_QUET = 1523707366280003594
-ID_MAP = "88323040672117"
-ID_KENH_PHAN_UNG = 1523970421819572345
-ID_VAI_TRO_PHAN_UNG = 1523599853882703882
-KENH_EVENT_ID = 1523605458068181083
-KENH_KET_QUA_ID = 1523605663064915978
-ADMIN_ID = 1507006947755430069
-ID_KENH_LOG_GIAO_DICH = 1526249026075234476
+# phần 3
+ma_bot = os.getenv('DISCORD_TOKEN')
+id_may_chu = 1509102064784117821
+id_kenh_kiem_tra = 1523606725318676532
+id_kenh_don = 1523604635816820856
+id_danh_muc_don = 1523595672861933569
+id_quan_tri = 1511311539896979466
+id_dieu_hanh = 1523739463610536217
+id_vip = 1523974551879417917
+id_member_paw = 1523599853882703882
+id_nguoi_nhan_log = 1507006947755430069
+id_kenh_chao_mung = 1523598483632947281
+id_kenh_tam_biet = 1523602359605919746
+id_kenh_quet = 1523707366280003594
+id_map = "88323040672117"
+id_kenh_phan_ung = 1523970421819572345
+id_vai_tro_phan_ung = 1523599853882703882
+kenh_event_id = 1523605458068181083
+kenh_ket_qua_id = 1523605663064915978
+admin_id = 1507006947755430069
+id_kenh_log_giao_dich = 1526249026075234476
 
-# ===== CẤU HÌNH DOITHEGIATOT =====
-DOITHEGIATOT_API_KEY = "49a4cf521676fc72aed3daf8804362ea"
-DOITHEGIATOT_API_URL = "https://doithegiatot.com/api"
+doithegiatot_api_key = "49a4cf521676fc72aed3daf8804362ea"
+doithegiatot_api_url = "https://doithegiatot.com/api"
 
-# ===== EMOJI & ẢNH =====
-EMOJI_CANH1 = "✨"
-EMOJI_CANH2 = "✨"
-EMOJI_BLINK2 = "✨"
-EMOJI_BLINKK = "🔹"
-EMOJI_TRON = "🔹"
-EMOJI_COIN = "💰"
-BIEU_TUONG_PHAN_UNG = "✅"
+emoji_canh1 = "✨"
+emoji_canh2 = "✨"
+emoji_blink2 = "✨"
+emoji_blinkk = "🔹"
+emoji_tron = "🔹"
+emoji_coin = "💰"
+bieu_tuong_phan_ung = "✅"
 
-ANH_GIF = "https://cdn.discordapp.com/attachments/1524068633255481387/1524080452049305713/da685c21e4f555bad69f52593c221dc7.gif"
-ANH_CHAO_MUNG = "https://i.postimg.cc/sDh8Xcyp/a9e9538574064d128b604f643392d84b.gif"
-ANH_TAM_BIET = "https://cdn.discordapp.com/attachments/1524068633255481387/1524068815518961825/c19d6274e1fd53c5ca46cdafccb4cbc9.gif"
-ANH_NHO = "https://huyhieu08.online/uploads/20260707_054705_91412ed7.png"
-ANH_LON = "https://i.postimg.cc/V6CFtBL0/no-Filter.webp"
+anh_gif = "https://cdn.discordapp.com/attachments/1524068633255481387/1524080452049305713/da685c21e4f555bad69f52593c221dc7.gif"
+anh_chao_mung = "https://i.postimg.cc/sDh8Xcyp/a9e9538574064d128b604f643392d84b.gif"
+anh_tam_biet = "https://cdn.discordapp.com/attachments/1524068633255481387/1524068815518961825/c19d6274e1fd53c5ca46cdafccb4cbc9.gif"
+anh_nho = "https://huyhieu08.online/uploads/20260707_054705_91412ed7.png"
+anh_lon = "https://i.postimg.cc/V6CFtBL0/no-Filter.webp"
 
-# ===== LOẠI THẺ =====
-LOAI_THE = [
+loai_the = [
     {"name": "Zing", "value": 14},
     {"name": "Viettel", "value": 1},
     {"name": "Vinaphone", "value": 3},
@@ -123,17 +95,14 @@ LOAI_THE = [
     {"name": "Vietnamobile", "value": 16}
 ]
 
-MENH_GIA = [5000, 10000, 20000, 50000, 100000, 200000, 500000, 1000000]
+menh_gia = [5000, 10000, 20000, 50000, 100000, 200000, 500000, 1000000]
 
-# ============================================================
-# PHẦN 3: BIẾN TOÀN CỤC
-# ============================================================
+# phần 4
 dem_don = 0
 dang_quet = True
 id_tin_nhan_phan_ung = None
 cac_map_da_gui = []
 
-# ===== BIẾN NẠP CARD =====
 danh_sach_cam = {}
 nguoi_dung_bi_cam = set()
 lich_su_nap = {}
@@ -142,7 +111,6 @@ vi_tien = {}
 temp_data = {}
 dang_check = {}
 
-# ===== BIẾN EVENT =====
 event_active = False
 cho_phep_tham_gia = True
 nguoi_tham_gia = {}
@@ -152,9 +120,7 @@ vong_hien_tai = 1
 ds_da_thang = []
 lich_su_event = []
 
-# ============================================================
-# PHẦN 4: HÀM LỊCH SỬ & KHÔI PHỤC EVENT
-# ============================================================
+# phần 5
 def them_lich_su(action, nguoi, nguoi_thuc_hien, **kwargs):
     lich_su_event.append({
         "action": action,
@@ -167,7 +133,7 @@ def them_lich_su(action, nguoi, nguoi_thuc_hien, **kwargs):
 async def phuc_hoi_event_tu_tin_nhan(bot):
     global event_active, cho_phep_tham_gia, nguoi_tham_gia, msg_event, so_event, vong_hien_tai, ds_da_thang
     try:
-        k = bot.get_channel(KENH_EVENT_ID)
+        k = bot.get_channel(kenh_event_id)
         if not k:
             print("❌ Không tìm thấy kênh event!")
             return False
@@ -207,31 +173,28 @@ async def phuc_hoi_event_tu_tin_nhan(bot):
         traceback.print_exc()
     return False
 
-# ============================================================
-# PHẦN 5: CÁC HÀM TIỆN ÍCH
-# ============================================================
-    
+# phần 6
 def nap_emoji_tu_may_chu(bot):
-    global EMOJI_CANH1, EMOJI_CANH2, EMOJI_BLINK2, EMOJI_BLINKK, EMOJI_TRON, EMOJI_COIN, BIEU_TUONG_PHAN_UNG
+    global emoji_canh1, emoji_canh2, emoji_blink2, emoji_blinkk, emoji_tron, emoji_coin, bieu_tuong_phan_ung
     try:
-        may_chu = bot.get_guild(ID_MAY_CHU)
+        may_chu = bot.get_guild(id_may_chu)
         if not may_chu:
             return
         for emoji in may_chu.emojis:
             if emoji.name == "canh1":
-                EMOJI_CANH1 = str(emoji)
+                emoji_canh1 = str(emoji)
             elif emoji.name == "canh2":
-                EMOJI_CANH2 = str(emoji)
+                emoji_canh2 = str(emoji)
             elif emoji.name == "blink2":
-                EMOJI_BLINK2 = str(emoji)
+                emoji_blink2 = str(emoji)
             elif emoji.name == "blinkk":
-                EMOJI_BLINKK = str(emoji)
+                emoji_blinkk = str(emoji)
             elif emoji.name == "tron":
-                EMOJI_TRON = str(emoji)
+                emoji_tron = str(emoji)
             elif emoji.name == "xu":
-                EMOJI_COIN = str(emoji)
+                emoji_coin = str(emoji)
             elif emoji.name == "baibien":
-                BIEU_TUONG_PHAN_UNG = str(emoji)
+                bieu_tuong_phan_ung = str(emoji)
     except Exception as e:
         print(f"❌ Lỗi nap_emoji: {e}")
         traceback.print_exc()
@@ -250,9 +213,9 @@ def la_quan_tri(tt: discord.Interaction):
         if tt.guild is not None:
             if tv.guild_permissions.administrator:
                 return True
-            return any(r.id == ID_QUAN_TRI for r in tv.roles)
+            return any(r.id == id_quan_tri for r in tv.roles)
         else:
-            return tv.id == ADMIN_ID
+            return tv.id == admin_id
     except Exception as e:
         print(f"❌ Lỗi la_quan_tri: {e}")
         traceback.print_exc()
@@ -262,17 +225,17 @@ def la_quan_tri_hoac_dieu_hanh(tt: discord.Interaction):
     try:
         tv = tt.user
         if tt.guild is not None:
-            return any(r.id in [ID_QUAN_TRI, ID_DIEU_HANH] for r in tv.roles)
+            return any(r.id in [id_quan_tri, id_dieu_hanh] for r in tv.roles)
         else:
-            return tv.id == ADMIN_ID
+            return tv.id == admin_id
     except Exception as e:
         print(f"❌ Lỗi la_quan_tri_hoac_dieu_hanh: {e}")
         traceback.print_exc()
         return False
-        
+
 def la_vip_nd(tt: discord.Interaction):
     try:
-        return any(r.id == ID_VIP for r in tt.user.roles)
+        return any(r.id == id_vip for r in tt.user.roles)
     except Exception as e:
         print(f"❌ Lỗi la_vip_nd: {e}")
         traceback.print_exc()
@@ -287,7 +250,7 @@ def dinh_dang_gia(gg, giam, vip):
 async def gui_nhat_ky_don(bot, so_don, id_nt, nguoi_dong, ldv, ly_do="Không"):
     try:
         now = gio_vn()
-        nguoi_nhan = bot.get_user(ID_NGUOI_NHAN_LOG) or await bot.fetch_user(ID_NGUOI_NHAN_LOG)
+        nguoi_nhan = bot.get_user(id_nguoi_nhan_log) or await bot.fetch_user(id_nguoi_nhan_log)
         bang = discord.Embed(title=f"# Đơn số {so_don}", color=0x3498db)
         bang.add_field(name="🧑‍🦱 Người mở:", value=f"<@{id_nt}>" if id_nt else "?", inline=False)
         bang.add_field(name="🧑‍🦱 Người đóng:", value=nguoi_dong, inline=False)
@@ -300,7 +263,7 @@ async def gui_nhat_ky_don(bot, so_don, id_nt, nguoi_dong, ldv, ly_do="Không"):
         traceback.print_exc()
 
 def lay_chiet_khau_tu_api(loai_the, menhgia):
-    url = f"https://doithegiatot.com/api/cardrate?apikey={DOITHEGIATOT_API_KEY}"
+    url = f"https://doithegiatot.com/api/cardrate?apikey={doithegiatot_api_key}"
     try:
         response = requests.get(url, timeout=10)
         if response.status_code == 200:
@@ -317,9 +280,9 @@ def lay_chiet_khau_tu_api(loai_the, menhgia):
         return None
 
 def gui_the_doithegiatot(pin, seri, card_type, amount, requestid):
-    url = f"{DOITHEGIATOT_API_URL}/card"
+    url = f"{doithegiatot_api_url}/card"
     payload = {
-        "ApiKey": DOITHEGIATOT_API_KEY,
+        "ApiKey": doithegiatot_api_key,
         "Pin": pin,
         "Seri": seri,
         "CardType": card_type,
@@ -371,7 +334,7 @@ def cap_nhat_webhook(user_id, amount, nap_id, status="success"):
 
 async def gui_bao_cao_admin(bot, title, description, color, fields=None):
     try:
-        admin = await bot.fetch_user(ADMIN_ID)
+        admin = await bot.fetch_user(admin_id)
         embed = discord.Embed(title=title, description=description, color=color)
         if fields:
             for name, value in fields:
@@ -383,14 +346,12 @@ async def gui_bao_cao_admin(bot, title, description, color, fields=None):
         print(f"❌ Lỗi gửi báo cáo Admin: {e}")
 
 async def gui_log_giao_dich(bot, user_id, so_du_moi, so_tien_bien_dong, ly_do=""):
-    """Gửi tin nhắn log giao dịch vào kênh để lưu trữ dữ liệu"""
     try:
-        kenh_log = bot.get_channel(ID_KENH_LOG_GIAO_DICH)
+        kenh_log = bot.get_channel(id_kenh_log_giao_dich)
         if not kenh_log:
             print("⚠️ Không tìm thấy kênh log giao dịch!")
             return
         
-        # Check quyền gửi tin nhắn
         me = kenh_log.guild.me
         if not kenh_log.permissions_for(me).send_messages:
             print("❌ Bot không có quyền gửi tin nhắn vào kênh log!")
@@ -414,24 +375,18 @@ async def gui_log_giao_dich(bot, user_id, so_du_moi, so_tien_bien_dong, ly_do=""
     except Exception as e:
         print(f"❌ Lỗi gửi log giao dịch: {e}")
 
-
-# ============================================================
-# PHẦN 6: HÀM KHÔI PHỤC SỐ DƯ TỪ KÊNH LOG
-# ============================================================
 async def khoi_phuc_so_du_tu_log(bot):
-    """Quét kênh log, chỉ lấy dòng Ví Tiền cuối cùng của mỗi user để khôi phục"""
     global vi_tien, lich_su_nap
     vi_tien = {}
     lich_su_nap = {}
     print("🔄 Đang khôi phục số dư từ kênh log (chỉ lấy số dư cuối cùng)...")
 
-    kenh_log = bot.get_channel(ID_KENH_LOG_GIAO_DICH)
+    kenh_log = bot.get_channel(id_kenh_log_giao_dich)
     if not kenh_log:
         print("❌ Không tìm thấy kênh log, bỏ qua khôi phục.")
         return
 
     try:
-        # Tạo dict tạm để lưu số dư cuối cùng của mỗi user
         temp_vi_tien = {}
 
         async for msg in kenh_log.history(limit=200):
@@ -440,7 +395,6 @@ async def khoi_phuc_so_du_tu_log(bot):
 
             embed = msg.embeds[0]
             if embed.title and "📊 LOG BIẾN ĐỘNG SỐ DƯ" in embed.title:
-                # Parse User ID
                 user_id = None
                 for line in embed.description.split("\n"):
                     if "ID:" in line:
@@ -450,27 +404,21 @@ async def khoi_phuc_so_du_tu_log(bot):
                 if not user_id:
                     continue
 
-                # Parse số dư cuối cùng từ dòng Ví Tiền
                 so_du_cuoi = 0
                 for line in embed.description.split("\n"):
                     if "Ví Tiền:" in line:
-                        # Lấy số, bỏ hết dấu phẩy
                         so_du_text = re.sub(r'[^\d]', '', line)
                         if so_du_text:
                             so_du_cuoi = int(so_du_text)
                 
-                # Ghi đè số dư cuối cùng (vì log được sắp xếp từ mới đến cũ, nên dòng cuối đọc được sẽ là mới nhất)
                 temp_vi_tien[user_id] = so_du_cuoi
 
-        # Gán vào biến toàn cục
         vi_tien = temp_vi_tien
         print(f"✅ Đã khôi phục số dư cho {len(vi_tien)} users dựa trên log cuối cùng!")
     except Exception as e:
         print(f"❌ Lỗi khi quét kênh log: {e}")
 
-# ============================================================
-# PHẦN 7: MODALS
-# ============================================================
+# phần 7
 class BangKiemTraTien(discord.ui.Modal, title="Kiểm tra giá tiền"):
     sl = discord.ui.TextInput(label="Nhập số tiền", placeholder="100000", required=True, max_length=20)
     async def on_submit(self, tt):
@@ -499,7 +447,7 @@ class BangKiemTraTien(discord.ui.Modal, title="Kiểm tra giá tiền"):
                 mo_ta += f"\n👑 {tt.user.mention}, bạn là **Thành viên VIP** nên được giảm **3%**!\n"
             mo_ta += "\n‼️ **ÁP MÃ GIẢM GIÁ SẼ ĐƯỢC GIẢM TÙY THEO MÃ** ‼️"
             bang.description = mo_ta
-            bang.set_image(url=ANH_GIF)
+            bang.set_image(url=anh_gif)
             bang.set_footer(text=f"{now.strftime('%H:%M:%S | %d-%m-%Y')} | {tt.user.display_name}")
             await tt.response.send_message(embed=bang, ephemeral=True)
         except Exception as e:
@@ -537,7 +485,7 @@ class BangKiemTraSlay(discord.ui.Modal, title="Kiểm tra giá slay"):
                 mo_ta += f"\n👑 {tt.user.mention}, bạn là **Thành viên VIP** nên được giảm **3%**!\n"
             mo_ta += "\n‼️ **ÁP MÃ GIẢM GIÁ SẼ ĐƯỢC GIẢM TÙY THEO MÃ** ‼️"
             bang.description = mo_ta
-            bang.set_image(url=ANH_GIF)
+            bang.set_image(url=anh_gif)
             bang.set_footer(text=f"{now.strftime('%H:%M:%S | %d-%m-%Y')} | {tt.user.display_name}")
             await tt.response.send_message(embed=bang, ephemeral=True)
         except Exception as e:
@@ -575,7 +523,7 @@ class BangVndSangTien(discord.ui.Modal, title="VND → Tiền cần cày"):
                 mo_ta += f"\n👑 {tt.user.mention}, bạn là **Thành viên VIP** nên được giảm **3%**!\n"
             mo_ta += "\n‼️ **ÁP MÃ GIẢM GIÁ SẼ ĐƯỢC GIẢM TÙY THEO MÃ** ‼️"
             bang.description = mo_ta
-            bang.set_image(url=ANH_GIF)
+            bang.set_image(url=anh_gif)
             bang.set_footer(text=f"{now.strftime('%H:%M:%S | %d-%m-%Y')} | {tt.user.display_name}")
             await tt.response.send_message(embed=bang, ephemeral=True)
         except Exception as e:
@@ -615,7 +563,7 @@ class BangVndSangSlay(discord.ui.Modal, title="VND → Slay"):
                 mo_ta += f"\n👑 {tt.user.mention}, bạn là **Thành viên VIP** nên được giảm **3%**!\n"
             mo_ta += "\n‼️ **ÁP MÃ GIẢM GIÁ SẼ ĐƯỢC GIẢM TÙY THEO MÃ** ‼️"
             bang.description = mo_ta
-            bang.set_image(url=ANH_GIF)
+            bang.set_image(url=anh_gif)
             bang.set_footer(text=f"{now.strftime('%H:%M:%S | %d-%m-%Y')} | {tt.user.display_name}")
             await tt.response.send_message(embed=bang, ephemeral=True)
         except Exception as e:
@@ -634,7 +582,7 @@ class BangTaoDon(discord.ui.Modal, title="Tạo đơn"):
             for k in mc.channels:
                 if k.name.startswith("đơn-") and k.topic and str(nd.id) == k.topic:
                     return await tt.response.send_message("❌ Đã có đơn!", ephemeral=True)
-            dm = mc.get_channel(ID_DANH_MUC_DON)
+            dm = mc.get_channel(id_danh_muc_don)
             dem_don += 1
             if dem_don > 999:
                 dem_don = 1
@@ -649,7 +597,7 @@ class BangTaoDon(discord.ui.Modal, title="Tạo đơn"):
             }
             k = await mc.create_text_channel(name=tn, category=dm, overwrites=pq, topic=f"{nd.id}|{ldv}")
             await k.send(
-                content=f"{nd.mention} <@&{ID_QUAN_TRI}>",
+                content=f"{nd.mention} <@&{id_quan_tri}>",
                 embed=discord.Embed(title="🎫 CÓ ĐƠN", description=f"Đơn: **{sd}**\nDịch vụ: **{ldv}**\nNgười tạo: {nd.mention}", color=0x3498db),
                 view=DieuKhienDon()
             )
@@ -679,9 +627,7 @@ class BangLyDoDong(discord.ui.Modal, title="Lý do đóng đơn"):
             traceback.print_exc()
             await tt.response.send_message("❌ Đã xảy ra lỗi!", ephemeral=True)
 
-# ============================================================
-# PHẦN 8: MODALS EVENT
-# ============================================================
+# phần 8
 class FormThamGia(discord.ui.Modal, title="Tham gia Event"):
     ten = discord.ui.TextInput(label="Hãy điền tên của bạn", placeholder="Nhập tên hiển thị trong game", required=True, max_length=50)
     async def on_submit(self, tt):
@@ -755,7 +701,7 @@ class XoaNguoiModal(discord.ui.Modal, title="Xoá người khỏi danh sách"):
             print(f"❌ Lỗi XoaNguoiModal: {e}")
             traceback.print_exc()
             await tt.response.send_message("❌ Đã xảy ra lỗi!", ephemeral=True)
-            
+
 class NhapTheModal(discord.ui.Modal, title="💳 Nhập thông tin thẻ"):
     pin = discord.ui.TextInput(label="🔢 Mã thẻ", placeholder="Nhập mã số trên thẻ", required=True, max_length=30)
     seri = discord.ui.TextInput(label="🔢 Seri thẻ", placeholder="Nhập seri trên thẻ", required=True, max_length=30)
@@ -763,7 +709,6 @@ class NhapTheModal(discord.ui.Modal, title="💳 Nhập thông tin thẻ"):
     async def on_submit(self, interaction):
         user_id = interaction.user.id
         
-        # Lấy dữ liệu từ bot (tuyệt đối không dùng biến toàn cục temp_data)
         if user_id not in interaction.client.temp_data:
             await interaction.response.send_message("⏳ Phiên làm việc đã hết. Vui lòng dùng lại `/naptien card` để bắt đầu lại từ đầu nhé!", ephemeral=True)
             return
@@ -775,7 +720,6 @@ class NhapTheModal(discord.ui.Modal, title="💳 Nhập thông tin thẻ"):
             await interaction.response.send_message(embed=embed_error, ephemeral=True)
             return
             
-        # Lưu lại dữ liệu vào Bot để xác nhận
         interaction.client.temp_data[user_id] = {
             "loai_the": data["loai_the"],
             "loai_the_name": data["loai_the_name"],
@@ -800,10 +744,8 @@ class NhapTheModal(discord.ui.Modal, title="💳 Nhập thông tin thẻ"):
         embed.set_footer(text=f"PawPank • {datetime.now().strftime('%H:%M:%S %d/%m/%Y')}")
         view = XacNhanTheView()
         await interaction.response.send_message(embed=embed, view=view, ephemeral=True)
-        
-# ============================================================
-# PHẦN 9: HÀM CẬP NHẬT EVENT
-# ============================================================
+
+# phần 9
 async def cap_nhat_event():
     global msg_event, nguoi_tham_gia, cho_phep_tham_gia
     try:
@@ -829,9 +771,7 @@ async def cap_nhat_event():
         print(f"❌ Lỗi cap_nhat_event: {e}")
         traceback.print_exc()
 
-# ============================================================
-# PHẦN 10: VIEWS
-# ============================================================
+# phần 10
 class NutEventChinh(discord.ui.View):
     def __init__(self):
         super().__init__(timeout=None)
@@ -845,7 +785,7 @@ class NutEventChinh(discord.ui.View):
                 if la_admin or la_mod:
                     await interaction.response.send_message("❌ Admin/Mod không thể rời đi! Hãy dùng /csds để quản lý!", ephemeral=True)
                     return False
-                la_paw = any(r.id == ID_MEMBER_PAW for r in interaction.user.roles)
+                la_paw = any(r.id == id_member_paw for r in interaction.user.roles)
                 if not la_paw:
                     await interaction.response.send_message("❌ Bạn không có quyền!", ephemeral=True)
                     return False
@@ -974,7 +914,7 @@ class XacNhanTheView(discord.ui.View):
     @discord.ui.button(label="❌ Hủy", style=discord.ButtonStyle.red, custom_id="huy_the")
     async def huy_the_button(self, interaction: discord.Interaction, button: discord.ui.Button):
         await interaction.response.defer()
-        
+
 class XacNhanDongDon(discord.ui.View):
     def __init__(self, k, sd, id_nt, ldv):
         super().__init__(timeout=30)
@@ -1187,9 +1127,7 @@ class GiaoDienServer(discord.ui.View):
             print(f"❌ Lỗi GiaoDienServer: {e}")
             traceback.print_exc()
 
-# ============================================================
-# PHẦN 11: QUẢN LÝ TRẬN ĐẤU
-# ============================================================
+# phần 11
 async def gui_tran_dau_moi():
     global vong_hien_tai, ds_da_thang
     try:
@@ -1208,7 +1146,7 @@ async def gui_tran_dau_moi():
 
 async def gui_tran_dau(u1, u2):
     try:
-        k = bot.get_channel(KENH_EVENT_ID)
+        k = bot.get_channel(kenh_event_id)
         if not k:
             return
         t1 = "ADMIN/MOD" if u1 == "admin" else nguoi_tham_gia.get(u1, "?")
@@ -1296,7 +1234,7 @@ class NutChonThang(discord.ui.View):
 
 async def gui_ket_qua(ut):
     try:
-        kq = bot.get_channel(KENH_KET_QUA_ID)
+        kq = bot.get_channel(kenh_ket_qua_id)
         if not kq:
             return
         tr = "ADMIN/MOD" if ut == "admin" else nguoi_tham_gia.get(ut, "?")
@@ -1318,27 +1256,24 @@ async def ket_thuc_event():
     global event_active
     try:
         event_active = False
-        k = bot.get_channel(KENH_EVENT_ID)
+        k = bot.get_channel(kenh_event_id)
         if k:
             await k.send("🏆 **EVENT KẾT THÚC!** Cảm ơn mọi người đã tham gia!")
     except Exception as e:
         print(f"❌ Lỗi ket_thuc_event: {e}")
         traceback.print_exc()
 
-# ============================================================
-# PHẦN 13: QUÉT MAP
-# ============================================================
+# phần 12
 MAX_MAPS = 15
 
 def quet_divaz():
-    """Quét TẤT CẢ server Divaz để tìm server trống nhất"""
     td = {'User-Agent': 'Mozilla/5.0'}
     tat_ca_server = []
     cursor = ""
     
     try:
         while True:
-            url = f"https://games.roblox.com/v1/games/{ID_MAP}/servers/Public?limit=100"
+            url = f"https://games.roblox.com/v1/games/{id_map}/servers/Public?limit=100"
             if cursor:
                 url += f"&cursor={cursor}"
             
@@ -1365,10 +1300,8 @@ def quet_divaz():
         pass
     
     if tat_ca_server:
-        # Sắp xếp server theo số người chơi tăng dần (ít người nhất lên đầu)
         tat_ca_server.sort(key=lambda x: x.get('playing', 999))
         
-        # Chọn server ít người nhất
         for m in tat_ca_server:
             sn = m.get('playing', 0)
             if sn < 5:
@@ -1381,10 +1314,8 @@ def quet_divaz():
                 }
     
     return None
-    
-# ============================================================
-# PHẦN 14: SLASH COMMANDS
-# ============================================================
+
+# phần 13
 @discord.app_commands.command(name="tat_tim_map", description="⏸️ Tạm dừng quét server Divaz")
 async def lenh_tat_tim_map(tt):
     try:
@@ -1425,7 +1356,7 @@ async def startev(tt):
         vong_hien_tai = 1
         ds_da_thang = []
         lich_su_event = []
-        k = bot.get_channel(KENH_EVENT_ID)
+        k = bot.get_channel(kenh_event_id)
         if not k:
             return await tt.response.send_message("❌ Không tìm thấy kênh!", ephemeral=True)
         embed = discord.Embed(
@@ -1591,9 +1522,7 @@ async def lsnew(tt: discord.Interaction):
         traceback.print_exc()
         await tt.response.send_message("❌ Đã xảy ra lỗi!", ephemeral=True)
 
-# ============================================================
-# PHẦN 15: NHÓM LỆNH NẠP TIỀN
-# ============================================================
+# phần 14
 class NapTienGroup(app_commands.Group):
     """💰 Nạp tiền vào PawPank"""
     
@@ -1605,8 +1534,8 @@ class NapTienGroup(app_commands.Group):
     @app_commands.command(name="card", description="💳 Nạp qua thẻ cào")
     @app_commands.describe(loai_the="Chọn loại thẻ", menhgia="Chọn mệnh giá")
     @app_commands.choices(
-        loai_the=[app_commands.Choice(name=item["name"], value=str(item["value"])) for item in LOAI_THE],
-        menhgia=[app_commands.Choice(name=f"{v:,} VND", value=str(v)) for v in MENH_GIA]
+        loai_the=[app_commands.Choice(name=item["name"], value=str(item["value"])) for item in loai_the],
+        menhgia=[app_commands.Choice(name=f"{v:,} VND", value=str(v)) for v in menh_gia]
     )
     async def card(self, interaction: discord.Interaction, loai_the: app_commands.Choice[str], menhgia: app_commands.Choice[str]):
         user = interaction.user
@@ -1732,13 +1661,13 @@ async def lichsunap(interaction: discord.Interaction):
     embed.set_footer(text="Hiển thị 10 lịch sử gần nhất")
     await interaction.response.send_message(embed=embed, ephemeral=True)
 
-@discord.app_commands.command(name="tru", description="💸 Trừ tiền của user (Admin)")
+@discord.app_commands.command(name="trutien", description="💸 Trừ tiền của user (Admin)")
 @app_commands.describe(
     user="Chọn user cần trừ tiền",
     so_tien="Số tiền cần trừ (VND)",
     ly_do="Lý do trừ tiền (tùy chọn)"
 )
-async def tru_tien(
+async def trutien(
     interaction: discord.Interaction,
     user: discord.User,
     so_tien: int,
@@ -1774,14 +1703,6 @@ async def tru_tien(
         
         so_du_moi = so_du_hien_tai - so_tien
         vi_tien[user_id] = so_du_moi
-        luu_du_lieu()
-
-        # === GỬI LOG VÀO KÊNH ===
-        try:
-            await gui_log_giao_dich(bot, user_id, so_du_moi, -so_tien, ly_do if ly_do else "Admin trừ")
-        except Exception as e:
-            print(f"⚠️ Lỗi khi gửi log trừ tiền: {e}")
-        # ====================================
         
         if user_id not in lich_su_nap:
             lich_su_nap[user_id] = []
@@ -1843,7 +1764,7 @@ async def tru_tien(
         )
         
     except Exception as e:
-        print(f"❌ Lỗi tru_tien: {e}")
+        print(f"❌ Lỗi trutien: {e}")
         traceback.print_exc()
         embed_error = discord.Embed(
             title="❌ LỖI",
@@ -1852,14 +1773,13 @@ async def tru_tien(
         )
         await interaction.response.send_message(embed=embed_error, ephemeral=True)
 
-
 @discord.app_commands.command(name="congtien", description="💰 Cộng tiền vào ví user (Admin - Cho phép nợ âm)")
 @app_commands.describe(
     user="Chọn user cần cộng tiền",
     so_tien="Số tiền cần cộng (VND, có thể nhập số âm để trừ nợ)",
     ly_do="Lý do cộng tiền (tùy chọn)"
 )
-async def cong_tien(
+async def congtien(
     interaction: discord.Interaction,
     user: discord.User,
     so_tien: int,
@@ -1881,10 +1801,6 @@ async def cong_tien(
         
         so_du_moi = so_du_hien_tai + so_tien
         vi_tien[user_id] = so_du_moi
-        luu_du_lieu()
-
-        # === GỬI LOG VÀO KÊNH ===
-        await gui_log_giao_dich(bot, user_id, so_du_moi, so_tien, ly_do if ly_do else "Admin cộng (âm trừ nợ)")
         
         if user_id not in lich_su_nap:
             lich_su_nap[user_id] = []
@@ -1895,8 +1811,6 @@ async def cong_tien(
             'admin': interaction.user.id
         })
         
-        cap_nhat_webhook(user_id, so_du_moi, f"DISCORD_ADMIN_{int(time.time())}", "success")
-
         embed_success = discord.Embed(
             title="✅ CỘNG TIỀN THÀNH CÔNG!",
             description=f"Đã cộng **{so_tien:,} VND** vào ví {user.mention}",
@@ -1943,7 +1857,7 @@ async def cong_tien(
         )
         
     except Exception as e:
-        print(f"❌ Lỗi cong_tien: {e}")
+        print(f"❌ Lỗi congtien: {e}")
         traceback.print_exc()
         embed_error = discord.Embed(
             title="❌ LỖI",
@@ -1952,9 +1866,7 @@ async def cong_tien(
         )
         await interaction.response.send_message(embed=embed_error, ephemeral=True)
 
-# ============================================================
-# PHẦN 16: BOT CHÍNH
-# ============================================================
+# phần 15
 class Bot(discord.Client):
     def __init__(self):
         q = discord.Intents.default()
@@ -1970,7 +1882,7 @@ class Bot(discord.Client):
 
     async def setup_hook(self):
         try:
-            mc = discord.Object(id=ID_MAY_CHU)
+            mc = discord.Object(id=id_may_chu)
             self.tree.add_command(lenh_tat_tim_map)
             self.tree.add_command(lenh_bat_tim_map)
             self.tree.add_command(startev)
@@ -1982,9 +1894,9 @@ class Bot(discord.Client):
             self.tree.add_command(cancelev)
             self.tree.add_command(lsnew)
             self.tree.add_command(sodu)
-            self.tree.add_command(sodutv)  # <--- Lệnh mới
-            self.tree.add_command(tru_tien)
-            self.tree.add_command(cong_tien)
+            self.tree.add_command(sodutv)
+            self.tree.add_command(trutien)
+            self.tree.add_command(congtien)
             self.tree.add_command(NapTienGroup(name="naptien", description="💰 Nạp tiền vào PawPank"))
             await self.tree.sync(guild=mc)
             await self.tree.sync()
@@ -2001,9 +1913,7 @@ class Bot(discord.Client):
     async def on_ready(self):
         global cac_map_da_gui
         try:
-            # === KHÔI PHỤC SỐ DƯ TỪ LOG ===
             await khoi_phuc_so_du_tu_log(self)
-            # =================================
             
             nap_emoji_tu_may_chu(self)
             await phuc_hoi_event_tu_tin_nhan(self)
@@ -2020,12 +1930,9 @@ class Bot(discord.Client):
             if not self.vong_lap_quet.is_running():
                 self.vong_lap_quet.start()
             
-            # === THÊM AUTO SAVE RA NGOÀI TRY, NGAY TRƯỚC KHI IN "BOT SẴN SÀNG" ===
             @tasks.loop(seconds=10)
             async def auto_save_data():
-                luu_du_lieu()
-            auto_save_data.start()
-            # =========================================================
+                pass
             
             print(f"🚀 Bot sẵn sàng!")
         except Exception as e:
@@ -2034,7 +1941,7 @@ class Bot(discord.Client):
 
     async def bang_dieu_khien(self):
         try:
-            kkt = self.get_channel(ID_KENH_KIEM_TRA)
+            kkt = self.get_channel(id_kenh_kiem_tra)
             if kkt:
                 async for t in kkt.history(limit=50):
                     if t.author == self.user:
@@ -2055,7 +1962,7 @@ class Bot(discord.Client):
                 bang_kiem_tra.set_footer(text=gio_vn().strftime('%H:%M:%S | %d-%m-%Y'))
                 await kkt.send(embed=bang_kiem_tra, view=GiaoDienKiemTraGia())
 
-            kd = self.get_channel(ID_KENH_DON)
+            kd = self.get_channel(id_kenh_don)
             if kd:
                 async for t in kd.history(limit=50):
                     if t.author == self.user:
@@ -2074,7 +1981,7 @@ class Bot(discord.Client):
                 )
 
             global id_tin_nhan_phan_ung
-            kpu = self.get_channel(ID_KENH_PHAN_UNG)
+            kpu = self.get_channel(id_kenh_phan_ung)
             if kpu:
                 tnc = None
                 async for t in kpu.history(limit=50):
@@ -2084,7 +1991,7 @@ class Bot(discord.Client):
                 if tnc:
                     id_tin_nhan_phan_ung = tnc.id
                     try:
-                        await tnc.add_reaction(BIEU_TUONG_PHAN_UNG)
+                        await tnc.add_reaction(bieu_tuong_phan_ung)
                     except:
                         pass
                 else:
@@ -2104,7 +2011,7 @@ class Bot(discord.Client):
                     )
                     bang_vai_tro.set_footer(text="BotByPawPaw")
                     tn = await kpu.send(embed=bang_vai_tro)
-                    await tn.add_reaction(BIEU_TUONG_PHAN_UNG)
+                    await tn.add_reaction(bieu_tuong_phan_ung)
                     id_tin_nhan_phan_ung = tn.id
         except Exception as e:
             print(f"❌ Lỗi bang_dieu_khien: {e}")
@@ -2136,8 +2043,7 @@ class Bot(discord.Client):
                         if user_id not in vi_tien:
                             vi_tien[user_id] = 0
                         vi_tien[user_id] += tien_nhan
-                        luu_du_lieu()
-
+                        
                         ly_do_log = f"Nạp thẻ {loai_the} - {menhgia:,} VND"
                         await gui_log_giao_dich(self, user_id, vi_tien[user_id], tien_nhan, ly_do_log)
                         
@@ -2235,9 +2141,9 @@ class Bot(discord.Client):
             return
 
         try:
-            k = self.get_channel(ID_KENH_QUET)
+            k = self.get_channel(id_kenh_quet)
             if k is None:
-                print("❌ Không tìm thấy channel:", ID_KENH_QUET)
+                print("❌ Không tìm thấy channel:", id_kenh_quet)
                 return
 
             map_moi = quet_divaz()
@@ -2264,11 +2170,10 @@ class Bot(discord.Client):
                 )
                 b.add_field(name="📶 PING", value=f"{map_moi['ping']}ms", inline=True)
                 b.add_field(name="🎯 FPS", value=f"{map_moi['fps']}", inline=True)
-                b.set_thumbnail(url=ANH_NHO)
-                b.set_image(url=ANH_LON)
+                b.set_thumbnail(url=anh_nho)
+                b.set_image(url=anh_lon)
                 b.set_footer(text=f"BotByPawPaw • {now.strftime('%H:%M:%S | %d/%m/%Y')}")
                 
-                # Chỉ gửi khi server dưới 3 người
                 if sn <= 3:
                     await k.send(embed=b, view=GiaoDienServer(map_moi))
                 
@@ -2298,7 +2203,7 @@ class Bot(discord.Client):
         try:
             if dl.message_id != id_tin_nhan_phan_ung:
                 return
-            if str(dl.emoji) != BIEU_TUONG_PHAN_UNG:
+            if str(dl.emoji) != bieu_tuong_phan_ung:
                 return
             mc = self.get_guild(dl.guild_id)
             if not mc:
@@ -2306,7 +2211,7 @@ class Bot(discord.Client):
             tv = mc.get_member(dl.user_id)
             if not tv or tv.bot:
                 return
-            vt = mc.get_role(ID_VAI_TRO_PHAN_UNG)
+            vt = mc.get_role(id_vai_tro_phan_ung)
             if not vt:
                 return
             await tv.add_roles(vt)
@@ -2318,7 +2223,7 @@ class Bot(discord.Client):
         try:
             if dl.message_id != id_tin_nhan_phan_ung:
                 return
-            if str(dl.emoji) != BIEU_TUONG_PHAN_UNG:
+            if str(dl.emoji) != bieu_tuong_phan_ung:
                 return
             mc = self.get_guild(dl.guild_id)
             if not mc:
@@ -2326,7 +2231,7 @@ class Bot(discord.Client):
             tv = mc.get_member(dl.user_id)
             if not tv or tv.bot:
                 return
-            vt = mc.get_role(ID_VAI_TRO_PHAN_UNG)
+            vt = mc.get_role(id_vai_tro_phan_ung)
             if not vt:
                 return
             await tv.remove_roles(vt)
@@ -2336,30 +2241,30 @@ class Bot(discord.Client):
 
     async def on_member_join(self, tv):
         try:
-            k = self.get_channel(ID_KENH_CHAO_MUNG)
+            k = self.get_channel(id_kenh_chao_mung)
             if not k:
                 return
             now = gio_vn()
             mc = tv.guild
             bang = discord.Embed(color=0x2ecc71)
             bang.description = (
-                f"# {EMOJI_CANH1}WELCOME{EMOJI_CANH2}\n"
+                f"# {emoji_canh1}WELCOME{emoji_canh2}\n"
                 "━━━━━━━━━━━━━━━━━━━━━━\n"
-                f"# {EMOJI_TRON}┆THÔNG TIN CỦA BẠN:\n"
-                f"{EMOJI_BLINKK} *Tên*: {tv.mention}\n"
-                f"{EMOJI_BLINKK} *Người dùng*: {tv.name}\n"
-                f"{EMOJI_BLINKK} *ID*: `{tv.id}`\n"
-                f"{EMOJI_BLINKK} *Ngày tạo*: {tv.created_at.strftime('%d-%m-%Y')}\n"
+                f"# {emoji_tron}┆THÔNG TIN CỦA BẠN:\n"
+                f"{emoji_blinkk} *Tên*: {tv.mention}\n"
+                f"{emoji_blinkk} *Người dùng*: {tv.name}\n"
+                f"{emoji_blinkk} *ID*: `{tv.id}`\n"
+                f"{emoji_blinkk} *Ngày tạo*: {tv.created_at.strftime('%d-%m-%Y')}\n"
                 "━━━━━━━━━━━━━━━━━━━━━━\n"
-                f"# {EMOJI_TRON}┆CỬA HÀNG PAWPAW:\n"
-                f"{EMOJI_BLINKK} Chào mừng bạn đã đến với {mc.name}!\n"
-                f"{EMOJI_BLINKK} Bạn là thành viên thứ {mc.member_count} của {mc.name}\n"
-                f"{EMOJI_BLINKK} Nếu thắc mắc và cần hỗ trợ, hãy liên hệ <@&{ID_QUAN_TRI}> và <@&{ID_DIEU_HANH}>.\n"
-                f"{EMOJI_BLINKK} Nếu muốn tham gia các kênh trò chuyện, hãy vào kênh <#{ID_KENH_PHAN_UNG}> để nhận vai trò.\n\n"
-                f"{EMOJI_BLINK2}{EMOJI_BLINK2} CHÚC BẠN MỘT NGÀY TỐT LÀNH {EMOJI_BLINK2}{EMOJI_BLINK2}"
+                f"# {emoji_tron}┆CỬA HÀNG PAWPAW:\n"
+                f"{emoji_blinkk} Chào mừng bạn đã đến với {mc.name}!\n"
+                f"{emoji_blinkk} Bạn là thành viên thứ {mc.member_count} của {mc.name}\n"
+                f"{emoji_blinkk} Nếu thắc mắc và cần hỗ trợ, hãy liên hệ <@&{id_quan_tri}> và <@&{id_dieu_hanh}>.\n"
+                f"{emoji_blinkk} Nếu muốn tham gia các kênh trò chuyện, hãy vào kênh <#{id_kenh_phan_ung}> để nhận vai trò.\n\n"
+                f"{emoji_blink2}{emoji_blink2} CHÚC BẠN MỘT NGÀY TỐT LÀNH {emoji_blink2}{emoji_blink2}"
             )
             bang.set_thumbnail(url=tv.display_avatar.url)
-            bang.set_image(url=ANH_CHAO_MUNG)
+            bang.set_image(url=anh_chao_mung)
             bang.set_footer(text=now.strftime('%H:%M:%S | %d-%m-%Y'))
             await k.send(embed=bang)
         except Exception as e:
@@ -2368,7 +2273,7 @@ class Bot(discord.Client):
 
     async def on_member_remove(self, tv):
         try:
-            k = self.get_channel(ID_KENH_TAM_BIET)
+            k = self.get_channel(id_kenh_tam_biet)
             if not k:
                 return
             now = gio_vn()
@@ -2379,7 +2284,7 @@ class Bot(discord.Client):
                 color=0xe74c3c
             )
             b.set_thumbnail(url=tv.display_avatar.url)
-            b.set_image(url=ANH_TAM_BIET)
+            b.set_image(url=anh_tam_biet)
             b.set_footer(text=now.strftime('%H:%M:%S | %d-%m-%Y'))
             await k.send(embed=b)
         except Exception as e:
@@ -2426,7 +2331,6 @@ class Bot(discord.Client):
                 tien_nhan_du_kien = data["tien_nhan_du_kien"]
                 requestid = f"THE{user_id}{menhgia}{int(time.time())}"[:25]
                 
-                # Xoá dữ liệu tạm
                 del self.temp_data[user_id]
                 if user_id in self.temp_data:
                     del self.temp_data[user_id]
@@ -2489,13 +2393,11 @@ class Bot(discord.Client):
                     embed_success.add_field(name="📝 Mã Giao Dịch", value=f"`{requestid}`", inline=False)
                     embed_success.set_footer(text=f"BotPawPank • {datetime.now().strftime('%H:%M:%S %d/%m/%Y')}")
                     
-                    # Xoá tin nhắn cũ (embed xác nhận)
                     try:
                         await interaction.message.delete()
                     except:
                         pass
                     
-                    # Gửi embed mới (không phải ephemeral)
                     msg = await interaction.followup.send(embed=embed_success)
                     self.pending_messages[user_id] = msg
                     
@@ -2530,106 +2432,13 @@ class Bot(discord.Client):
                     except:
                         pass
                     await interaction.followup.send(embed=embed_error)
-                    
-# ============================================================
-# PHẦN 17: CHẠY BOT
-# ============================================================
+
+# phần 16
 bot = Bot()
 
-# ============================================================
-# ========== LỆNH PREFIX "!" ==============
-# ============================================================
-
-@bot.event
-async def on_message(message):
-    if message.author.bot:
-        return
-
-    if not message.content.startswith('!'):
-        return
-
-    args = message.content.split()
-    cmd = args[0].lower()
-
-    member = message.author
-    is_admin = member.guild_permissions.administrator
-    is_admin_or_mod = is_admin or any(r.id in [ID_QUAN_TRI, ID_DIEU_HANH] for r in member.roles)
-
-    target = message.mentions[0] if message.mentions else None
-
-    # === !AV ===
-    if cmd == '!av':
-        if not is_admin_or_mod:
-            return await message.reply("❌ Bạn đâu phải là Admin hay là Mod đâu=)).")
-        if len(args) < 2 or target is None:
-            return await message.reply("❌ Admin/Mod dùng sai lệnh rùi kìa (!av @thanhvien)")
-        
-        embed = discord.Embed(color=0x3498db)
-        embed.set_image(url=target.display_avatar.url)
-        await message.reply(embed=embed)
-
-    # === !LOCK ===
-    elif cmd == '!lock':
-        if not is_admin_or_mod:
-            return await message.reply("❌ Bạn đâu phải là Admin hay là Mod đâu=)).")
-        if len(args) < 2 or target is None:
-            return await message.reply("❌ Admin/Mod dùng sai lệnh rùi kìa (!lock @thanhvien)")
-        
-        count = 0
-        for channel in message.guild.text_channels:
-            try:
-                await channel.set_permissions(target, send_messages=False)
-                count += 1
-            except:
-                pass
-        
-        await message.reply(f"🔒 Đã cấm chat **{target.mention}** ở tất cả kênh.")
-
-    # === !UNLOCK ===
-    elif cmd == '!unlock':
-        if not is_admin_or_mod:
-            return await message.reply("❌ Bạn đâu phải là Admin hay là Mod đâu=)).")
-        if len(args) < 2 or target is None:
-            return await message.reply("❌ Admin/Mod dùng sai lệnh rùi kìa (!unlock @thanhvien)")
-        
-        count = 0
-        for channel in message.guild.text_channels:
-            try:
-                await channel.set_permissions(target, send_messages=None)
-                count += 1
-            except:
-                pass
-        
-        await message.reply(f"🔓 Đã mở chat cho **{target.mention}** ở tất cả kênh.")
-
-    # === !BANKEH ===
-    elif cmd == '!bankenh':
-        if not is_admin_or_mod:
-            return await message.reply("❌ Bạn đâu phải là Admin hay là Mod đâu=)).")
-        if len(args) < 2 or target is None:
-            return await message.reply("❌ Admin/Mod dùng sai lệnh rùi kìa (!bankenh @thanhvien)")
-        
-        try:
-            await message.channel.set_permissions(target, send_messages=False)
-            await message.reply(f"🔇 Đã cấm chat **{target.mention}** ở kênh này!")
-        except:
-            await message.reply(f"❌ **{target.mention}** bị cấm chat trước đó rùii.")
-
-    # === !UNBANKEH ===
-    elif cmd == '!unbankenh':
-        if not is_admin_or_mod:
-            return await message.reply("❌ Bạn đâu phải là Admin hay là Mod đâu=)).")
-        if len(args) < 2 or target is None:
-            return await message.reply("❌ Admin/Mod dùng sai lệnh rùi kìa (!unbankenh @thanhvien)")
-        
-        try:
-            await message.channel.set_permissions(target, send_messages=None)
-            await message.reply(f"🔓 Đã mở lại chat cho **{target.mention}** tại kênh này!")
-        except:
-            await message.reply(f"❌ Không thể mở chst cho **{target.mention}** tại kênh này.")
-            
+# phần 17
 if __name__ == '__main__':
     luong = threading.Thread(target=chay_may_chu_web)
     luong.start()
     print("🌐 Web port 8080")
-    bot.run(MA_BOT)
+    bot.run(ma_bot)
