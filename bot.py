@@ -380,14 +380,11 @@ async def gui_log_giao_dich(bot, user_id, so_du_moi, so_tien_bien_dong, ly_do=""
             description=(
                 f"**ID:** `{user_id}`\n"
                 f"**Ví Tiền:** **{so_du_moi:,} VND**\n"
-                f"**Time:** {thoi_gian}\n"
-                f"**Ghi chú:** {ly_do}"
             ),
             color=0x3498db
         )
-        embed.set_footer(text="BotPawPank • Hệ thống tự động")
+        embed.set_footer(text="BotPawPank • {thoi_gian}")
         await kenh_log.send(embed=embed)
-        print(f"✅ Đã gửi log giao dịch cho user {user_id} vào kênh log")
     except Exception as e:
         print(f"❌ Lỗi gửi log giao dịch: {e}")
 
@@ -395,7 +392,6 @@ async def khoi_phuc_so_du_tu_log(bot):
     global vi_tien, lich_su_nap
     vi_tien = {}
     lich_su_nap = {}
-    print("🔄 Đang khôi phục số dư từ kênh log (chỉ lấy số dư cuối cùng)...")
 
     kenh_log = bot.get_channel(id_kenh_log_giao_dich)
     if not kenh_log:
