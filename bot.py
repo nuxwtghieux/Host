@@ -1,5 +1,5 @@
 # ============================================================
-# PHẦN 1: IMPORT & CẤU HÌN
+# PHẦN 1: IMPORT & CẤU HÌNH
 # ============================================================
 import discord
 from discord.ext import tasks
@@ -419,11 +419,11 @@ async def gui_log_giao_dich(bot, user_id, so_du_moi, so_tien_bien_dong, ly_do=""
 # PHẦN 6: HÀM KHÔI PHỤC SỐ DƯ TỪ KÊNH LOG
 # ============================================================
 async def khoi_phuc_so_du_tu_log(bot):
-    """Quét kênh log, lấy tin nhắn mới nhất của từng user để khôi phục số dư"""
+    """Quét kênh log, chỉ lấy dòng Ví Tiền cuối cùng của mỗi user để khôi phục"""
     global vi_tien, lich_su_nap
     vi_tien = {}
     lich_su_nap = {}
-    print("🔄 Đang khôi phục số dư từ kênh log...")
+    print("🔄 Đang khôi phục số dư từ kênh log (chỉ lấy số dư cuối cùng)...")
 
     kenh_log = bot.get_channel(ID_KENH_LOG_GIAO_DICH)
     if not kenh_log:
@@ -431,16 +431,16 @@ async def khoi_phuc_so_du_tu_log(bot):
         return
 
     try:
-        # Lấy tối đa 200 tin nhắn gần nhất (để đảm bảo bắt kịp)
+        # Tạo dict tạm để lưu số dư cuối cùng của mỗi user
+        temp_vi_tien = {}
+
         async for msg in kenh_log.history(limit=200):
-            if not msg.author.bot:
-                continue
-            if not msg.embeds:
+            if not msg.author.bot or not msg.embeds:
                 continue
 
             embed = msg.embeds[0]
             if embed.title and "📊 LOG BIẾN ĐỘNG SỐ DƯ" in embed.title:
-                # Parse User ID từ dòng "ID: ..."
+                # Parse User ID
                 user_id = None
                 for line in embed.description.split("\n"):
                     if "ID:" in line:
@@ -450,16 +450,21 @@ async def khoi_phuc_so_du_tu_log(bot):
                 if not user_id:
                     continue
 
-                # Parse Số dư mới nhất từ dòng "Ví Tiền: ..."
-                so_du = 0
+                # Parse số dư cuối cùng từ dòng Ví Tiền
+                so_du_cuoi = 0
                 for line in embed.description.split("\n"):
                     if "Ví Tiền:" in line:
-                        so_du = int(re.sub(r'[^\d]', '', line))
+                        # Lấy số, bỏ hết dấu phẩy
+                        so_du_text = re.sub(r'[^\d]', '', line)
+                        if so_du_text:
+                            so_du_cuoi = int(so_du_text)
                 
-                # Ghi đè số dư mới nhất của user (vì log được sắp xếp từ mới đến cũ)
-                vi_tien[user_id] = so_du
+                # Ghi đè số dư cuối cùng (vì log được sắp xếp từ mới đến cũ, nên dòng cuối đọc được sẽ là mới nhất)
+                temp_vi_tien[user_id] = so_du_cuoi
 
-        print(f"✅ Đã khôi phục số dư cho {len(vi_tien)} users từ kênh log!")
+        # Gán vào biến toàn cục
+        vi_tien = temp_vi_tien
+        print(f"✅ Đã khôi phục số dư cho {len(vi_tien)} users dựa trên log cuối cùng!")
     except Exception as e:
         print(f"❌ Lỗi khi quét kênh log: {e}")
 
@@ -1769,19 +1774,14 @@ async def tru_tien(
         
         so_du_moi = so_du_hien_tai - so_tien
         vi_tien[user_id] = so_du_moi
-        
-        # 1. Lưu xuống Replit
-        try:
-            luu_du_lieu()
-        except Exception as e:
-            print(f"⚠️ Lỗi khi luu_du_lieu (tru): {e}")
+        luu_du_lieu()
 
-        # ===== THÊM DÒNG NÀY: GỬI LOG VÀO KÊNH =====
+        # === GỬI LOG VÀO KÊNH ===
         try:
             await gui_log_giao_dich(bot, user_id, so_du_moi, -so_tien, ly_do if ly_do else "Admin trừ")
         except Exception as e:
             print(f"⚠️ Lỗi khi gửi log trừ tiền: {e}")
-        # ============================================
+        # ====================================
         
         if user_id not in lich_su_nap:
             lich_su_nap[user_id] = []
@@ -1809,7 +1809,6 @@ async def tru_tien(
         embed_success.set_footer(text=f"BotPawPank • {datetime.now().strftime('%H:%M:%S %d/%m/%Y')}")
         await interaction.response.send_message(embed=embed_success)
         
-        # Gửi DM cho user bị trừ tiền
         try:
             dm_embed = discord.Embed(
                 title="💸 BẠN ĐÃ BỊ TRỪ TIỀN",
@@ -1829,26 +1828,22 @@ async def tru_tien(
         except:
             pass
         
-        # Báo cáo Admin
-        try:
-            await gui_bao_cao_admin(
-                bot,
-                title="📊 THÔNG BÁO TRỪ TIỀN",
-                description=f"Admin {interaction.user.mention} đã trừ tiền của {user.mention}",
-                color=0xffaa00,
-                fields=[
-                    ("👤 User bị trừ", f"{user.mention} (`{user_id}`)"),
-                    ("💰 Số tiền trừ", f"{so_tien:,} VND"),
-                    ("📊 Số dư mới", f"{so_du_moi:,} VND"),
-                    ("📝 Lý do", ly_do if ly_do else "Không có"),
-                    ("👤 Admin thực hiện", interaction.user.mention)
-                ]
-            )
-        except:
-            pass
+        await gui_bao_cao_admin(
+            bot,
+            title="📊 THÔNG BÁO TRỪ TIỀN",
+            description=f"Admin {interaction.user.mention} đã trừ tiền của {user.mention}",
+            color=0xffaa00,
+            fields=[
+                ("👤 User bị trừ", f"{user.mention} (`{user_id}`)"),
+                ("💰 Số tiền trừ", f"{so_tien:,} VND"),
+                ("📊 Số dư mới", f"{so_du_moi:,} VND"),
+                ("📝 Lý do", ly_do if ly_do else "Không có"),
+                ("👤 Admin thực hiện", interaction.user.mention)
+            ]
+        )
         
     except Exception as e:
-        print(f"❌ Lỗi tổng thể khi thực hiện /tru: {e}")
+        print(f"❌ Lỗi tru_tien: {e}")
         traceback.print_exc()
         embed_error = discord.Embed(
             title="❌ LỖI",
@@ -1856,7 +1851,8 @@ async def tru_tien(
             color=0xff0000
         )
         await interaction.response.send_message(embed=embed_error, ephemeral=True)
-        
+
+
 @discord.app_commands.command(name="congtien", description="💰 Cộng tiền vào ví user (Admin - Cho phép nợ âm)")
 @app_commands.describe(
     user="Chọn user cần cộng tiền",
@@ -1879,13 +1875,6 @@ async def cong_tien(
             return await interaction.response.send_message(embed=embed_error, ephemeral=True)
         
         # ĐÃ BỎ DÒNG KIỂM TRA SỐ TIỀN ÂM (cho phép nợ)
-        # if so_tien <= 0:
-        #     embed_error = discord.Embed(
-        #         title="❌ LỖI",
-        #         description="Số tiền phải lớn hơn 0!",
-        #         color=0xff0000
-        #     )
-        #     return await interaction.response.send_message(embed=embed_error, ephemeral=True)
         
         user_id = user.id
         so_du_hien_tai = vi_tien.get(user_id, 0)
@@ -2279,7 +2268,9 @@ class Bot(discord.Client):
                 b.set_image(url=ANH_LON)
                 b.set_footer(text=f"BotByPawPaw • {now.strftime('%H:%M:%S | %d/%m/%Y')}")
                 
-                await k.send(embed=b, view=GiaoDienServer(map_moi))
+                # Chỉ gửi khi server dưới 3 người
+                if sn <= 3:
+                    await k.send(embed=b, view=GiaoDienServer(map_moi))
                 
                 if len(cac_map_da_gui) > MAX_MAPS:
                     so_can_xoa = len(cac_map_da_gui) - MAX_MAPS
