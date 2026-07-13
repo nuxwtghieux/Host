@@ -77,6 +77,11 @@ emoji_blinkk = "🔹"
 emoji_tron = "🔹"
 emoji_coin = "💰"
 bieu_tuong_phan_ung = "✅"
+emoji_bank = ":bank:"
+emoji_card = ":card:"
+emoji_slay = ":slay:"
+emoji_vip = ":vip:"
+emoji_tiendv = ":tiendv:"
 
 anh_gif = "https://cdn.discordapp.com/attachments/1524068633255481387/1524080452049305713/da685c21e4f555bad69f52593c221dc7.gif"
 anh_chao_mung = "https://i.postimg.cc/sDh8Xcyp/a9e9538574064d128b604f643392d84b.gif"
@@ -176,6 +181,7 @@ async def phuc_hoi_event_tu_tin_nhan(bot):
 # phần 6
 def nap_emoji_tu_may_chu(bot):
     global emoji_canh1, emoji_canh2, emoji_blink2, emoji_blinkk, emoji_tron, emoji_coin, bieu_tuong_phan_ung
+    global emoji_bank, emoji_card, emoji_slay, emoji_vip, emoji_tiendv
     try:
         may_chu = bot.get_guild(id_may_chu)
         if not may_chu:
@@ -195,10 +201,20 @@ def nap_emoji_tu_may_chu(bot):
                 emoji_coin = str(emoji)
             elif emoji.name == "baibien":
                 bieu_tuong_phan_ung = str(emoji)
+            elif emoji.name == "bank":
+                emoji_bank = str(emoji)
+            elif emoji.name == "card":
+                emoji_card = str(emoji)
+            elif emoji.name == "slay":
+                emoji_slay = str(emoji)
+            elif emoji.name == "vip":
+                emoji_vip = str(emoji)
+            elif emoji.name == "tiendv":
+                emoji_tiendv = str(emoji)
     except Exception as e:
         print(f"❌ Lỗi nap_emoji: {e}")
         traceback.print_exc()
-
+        
 def lam_tron_the(ngan_hang):
     the_tho = ngan_hang * 1.15 + 10000
     phan_du = the_tho % 10000
@@ -433,18 +449,18 @@ class BangKiemTraTien(discord.ui.Modal, title="Kiểm tra giá tiền"):
             the_giam = tinh_giam_gia(the_goc, tt)
             vip = la_vip_nd(tt)
             now = gio_vn()
-            bang = discord.Embed(title=f"💰 GIÁ CÀY TIỀN HIỆN TẠI 💰", color=0x3498db)
+            bang = discord.Embed(title=f"{emoji_coin}GIÁ CÀY **TIỀN DIVAZ** HIỆN TẠI{emoji_coin}", color=0x3498db)
             mo_ta = (
                 "\n━━━━━━━━━━━━━━━━━━━━━━\n"
-                f"💵ㆍ**Số tiền cần cày:** **{tien:,} TIỀN**\n"
+                f"{emoji_tiendv}ㆍ**Số tiền cần cày:** **{tien:,} TIỀN**\n"
                 "━━━━━━━━━━━━━━━━━━━━━━\n"
-                f"💳ㆍ**Chuyển khoản (Bank):** {dinh_dang_gia(ngan_hang_goc, ngan_hang_giam, vip)}\n"
+                f"{emoji_bank}ㆍ**Chuyển khoản (Bank):** {dinh_dang_gia(ngan_hang_goc, ngan_hang_giam, vip)}\n"
                 "━━━━━━━━━━━━━━━━━━━━━━\n"
-                f"🔖ㆍ**Thẻ cào (Card):** {dinh_dang_gia(the_goc, the_giam, vip)}\n"
+                f"{emoji_card}ㆍ**Thẻ cào (Card):** {dinh_dang_gia(the_goc, the_giam, vip)}\n"
                 "━━━━━━━━━━━━━━━━━━━━━━\n"
             )
             if vip:
-                mo_ta += f"\n👑 {tt.user.mention}, bạn là **Thành viên VIP** nên được giảm **3%**!\n"
+                mo_ta += f"\n{emoji_vip}{tt.user.mention}, bạn là **Thành viên VIP** nên được giảm **3%**!\n"
             mo_ta += "\n‼️ **ÁP MÃ GIẢM GIÁ SẼ ĐƯỢC GIẢM TÙY THEO MÃ** ‼️"
             bang.description = mo_ta
             bang.set_image(url=anh_gif)
@@ -471,18 +487,18 @@ class BangKiemTraSlay(discord.ui.Modal, title="Kiểm tra giá slay"):
             else:
                 chuoi_the = "Chỉ nhận card từ 400 SLAY!"
             now = gio_vn()
-            bang = discord.Embed(title=f"💅 GIÁ CÀY SLAY HIỆN TẠI 💅", color=0x3498db)
+            bang = discord.Embed(title=f"{emoji_coin}GIÁ CÀY **SLAY** HIỆN TẠI{emoji_coin}", color=0x3498db)
             mo_ta = (
                 "\n━━━━━━━━━━━━━━━━━━━━━━\n"
-                f"💅ㆍ**Số slay cần cày:** **{slay:,} SLAY**\n"
+                f"{emoji_slay}ㆍ**Số slay cần cày:** **{slay:,} SLAY**\n"
                 "━━━━━━━━━━━━━━━━━━━━━━\n"
-                f"💳ㆍ**Chuyển khoản (Bank):** {dinh_dang_gia(ngan_hang_goc, ngan_hang_giam, vip)}\n"
+                f"{emoji_bank}ㆍ**Chuyển khoản (Bank):** {dinh_dang_gia(ngan_hang_goc, ngan_hang_giam, vip)}\n"
                 "━━━━━━━━━━━━━━━━━━━━━━\n"
-                f"🔖ㆍ**Thẻ cào (Card):** {chuoi_the}\n"
+                f"{emoji_card}ㆍ**Thẻ cào (Card):** {chuoi_the}\n"
                 "━━━━━━━━━━━━━━━━━━━━━━\n"
             )
             if vip:
-                mo_ta += f"\n👑 {tt.user.mention}, bạn là **Thành viên VIP** nên được giảm **3%**!\n"
+                mo_ta += f"\n{emoji_vip}{tt.user.mention}, bạn là **Thành viên VIP** nên được giảm **3%**!\n"
             mo_ta += "\n‼️ **ÁP MÃ GIẢM GIÁ SẼ ĐƯỢC GIẢM TÙY THEO MÃ** ‼️"
             bang.description = mo_ta
             bang.set_image(url=anh_gif)
@@ -509,18 +525,18 @@ class BangVndSangTien(discord.ui.Modal, title="VND → Tiền cần cày"):
             the_giam = tinh_giam_gia(the_goc, tt)
             vip = la_vip_nd(tt)
             now = gio_vn()
-            bang = discord.Embed(title=f"💵 SỐ TIỀN CÀY BẠN NHẬN ĐƯỢC 💵", color=0xe67e22)
+            bang = discord.Embed(title=f"{emoji_coin}SỐ **TIỀN DIVAZ** BẠN NHẬN ĐƯỢC{emoji_coin}", color=0xe67e22)
             mo_ta = (
                 "\n━━━━━━━━━━━━━━━━━━━━━━\n"
-                f"💳ㆍ**Số VND bạn trả:** **{vnd:,} VND**\n"
+                f"{emoji_bank}ㆍ**Số tiền bạn phải trả (Bank):** **{vnd:,} VND**\n"
                 "━━━━━━━━━━━━━━━━━━━━━━\n"
-                f"💰ㆍ**Số tiền cày bạn nhận được:** **{tien_nhan:,} TIỀN**\n"
+                f"{emoji_card}ㆍ**Thẻ cào bạn phải trả (Card):** {dinh_dang_gia(the_goc, the_giam, vip)}\n"
                 "━━━━━━━━━━━━━━━━━━━━━━\n"
-                f"🔖ㆍ**Thẻ cào (Card):** {dinh_dang_gia(the_goc, the_giam, vip)}\n"
+                f"{emoji_tiendv}ㆍ**Số tiền divaz bạn nhận được:** **{tien_nhan:,} TIỀN**\n"
                 "━━━━━━━━━━━━━━━━━━━━━━\n"
             )
             if vip:
-                mo_ta += f"\n👑 {tt.user.mention}, bạn là **Thành viên VIP** nên được giảm **3%**!\n"
+                mo_ta += f"\n{emoji_vip}{tt.user.mention}, bạn là **Thành viên VIP** nên được giảm **3%**!\n"
             mo_ta += "\n‼️ **ÁP MÃ GIẢM GIÁ SẼ ĐƯỢC GIẢM TÙY THEO MÃ** ‼️"
             bang.description = mo_ta
             bang.set_image(url=anh_gif)
@@ -549,18 +565,18 @@ class BangVndSangSlay(discord.ui.Modal, title="VND → Slay"):
             else:
                 chuoi_the = "Chỉ nhận card từ 400 SLAY!"
             now = gio_vn()
-            bang = discord.Embed(title=f"💅 SỐ SLAY BẠN NHẬN ĐƯỢC 💅", color=0x9b59b6)
+            bang = discord.Embed(title=f"{emoji_coin}SỐ **SLAY** BẠN NHẬN ĐƯỢC{emoji_coin}", color=0x9b59b6)
             mo_ta = (
                 "\n━━━━━━━━━━━━━━━━━━━━━━\n"
-                f"💳ㆍ**Số VND bạn trả:** **{vnd:,} VND**\n"
+                f"{emoji_bank}ㆍ**Số tiền bạn phải trả (Bank):** **{vnd:,} VND**\n"
                 "━━━━━━━━━━━━━━━━━━━━━━\n"
-                f"💅ㆍ**Số slay bạn nhận được:** **{slay:,} SLAY**\n"
+                f"{emoji_card}ㆍ**Thẻ cào bạn phải trả (Card):** {chuoi_the}\n"
                 "━━━━━━━━━━━━━━━━━━━━━━\n"
-                f"🔖ㆍ**Thẻ cào (Card):** {chuoi_the}\n"
+                f"{emoji_slay}ㆍ**Số slay bạn nhận được:** **{slay:,} SLAY**\n"
                 "━━━━━━━━━━━━━━━━━━━━━━\n"
             )
             if vip:
-                mo_ta += f"\n👑 {tt.user.mention}, bạn là **Thành viên VIP** nên được giảm **3%**!\n"
+                mo_ta += f"\n{emoji_vip}{tt.user.mention}, bạn là **Thành viên VIP** nên được giảm **3%**!\n"
             mo_ta += "\n‼️ **ÁP MÃ GIẢM GIÁ SẼ ĐƯỢC GIẢM TÙY THEO MÃ** ‼️"
             bang.description = mo_ta
             bang.set_image(url=anh_gif)
@@ -1730,6 +1746,13 @@ async def trutien(
         embed_success.set_footer(text=f"BotPawPank • {datetime.now().strftime('%H:%M:%S %d/%m/%Y')}")
         await interaction.response.send_message(embed=embed_success)
         
+        # === GỬI LOG VÀO KÊNH ===
+        try:
+            await gui_log_giao_dich(bot, user_id, so_du_moi, -so_tien, ly_do if ly_do else "Admin trừ")
+        except Exception as e:
+            print(f"⚠️ Lỗi gửi log trừ tiền: {e}")
+        # =================================
+        
         try:
             dm_embed = discord.Embed(
                 title="💸 BẠN ĐÃ BỊ TRỪ TIỀN",
@@ -1772,7 +1795,7 @@ async def trutien(
             color=0xff0000
         )
         await interaction.response.send_message(embed=embed_error, ephemeral=True)
-
+        
 @discord.app_commands.command(name="congtien", description="💰 Cộng tiền vào ví user (Admin - Cho phép nợ âm)")
 @app_commands.describe(
     user="Chọn user cần cộng tiền",
@@ -1828,6 +1851,13 @@ async def congtien(
         embed_success.set_footer(text=f"BotPawPank • {datetime.now().strftime('%H:%M:%S %d/%m/%Y')}")
         await interaction.response.send_message(embed=embed_success)
         
+        # === GỬI LOG VÀO KÊNH ===
+        try:
+            await gui_log_giao_dich(bot, user_id, so_du_moi, so_tien, ly_do if ly_do else "Admin cộng (âm trừ nợ)")
+        except Exception as e:
+            print(f"⚠️ Lỗi gửi log cộng tiền: {e}")
+        # =================================
+        
         try:
             dm_embed = discord.Embed(
                 title="**✅ NẠP THẺ THÀNH CÔNG!**",
@@ -1865,7 +1895,7 @@ async def congtien(
             color=0xff0000
         )
         await interaction.response.send_message(embed=embed_error, ephemeral=True)
-
+        
 # phần 15
 class Bot(discord.Client):
     def __init__(self):
