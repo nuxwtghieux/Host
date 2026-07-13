@@ -19,45 +19,35 @@ import io
 import base64
 import threading
 import aiohttp
+import requests
 from datetime import datetime, timezone, timedelta
 from flask import Flask, request, jsonify
 
+# Đường dẫn API của Replit (đã có sẵn route /api/nap)
+REPLIT_NAP_API = "https://flask-webhook-service--trunghieugun09.replit.app/api/nap"
 
 def luu_du_lieu():
-    """Lưu toàn bộ dữ liệu quan trọng ra file JSON để khi bot restart không mất tiền"""
+    """Gửi dữ liệu lên Replit để lưu trữ (tự động cộng dồn)"""
     try:
-        data = {
-            "vi_tien": vi_tien,
-            "lich_su_nap": lich_su_nap,
-            "danh_sach_cam": danh_sach_cam,
-            "pending_transactions": pending_transactions,
-            "nguoi_dung_bi_cam": list(nguoi_dung_bi_cam),
-            "dem_don": dem_don
-        }
-        with open(DATA_FILE, 'w', encoding='utf-8') as f:
-            json.dump(data, f, ensure_ascii=False, indent=2)
+        for user_id, so_tien in vi_tien.items():
+            nap_id = f"SYNC_{user_id}_{int(time.time())}"
+            data = {
+                "user_id": str(user_id),
+                "amount": so_tien,
+                "nap_id": nap_id,
+                "status": "success"
+            }
+            requests.post(REPLIT_NAP_API, json=data, timeout=5)
+        print("✅ Đã đồng bộ dữ liệu lên Replit")
     except Exception as e:
-        print(f"❌ Lỗi lưu dữ liệu: {e}")
+        print(f"❌ Lỗi đồng bộ lên Replit: {e}")
 
 def tai_du_lieu():
-    """Tải dữ liệu từ file lên RAM khi bot khởi động"""
-    global vi_tien, lich_su_nap, danh_sach_cam, pending_transactions, nguoi_dung_bi_cam, dem_don
-    try:
-        if os.path.exists(DATA_FILE):
-            with open(DATA_FILE, 'r', encoding='utf-8') as f:
-                data = json.load(f)
-            
-            vi_tien = data.get("vi_tien", {})
-            lich_su_nap = data.get("lich_su_nap", {})
-            danh_sach_cam = data.get("danh_sach_cam", {})
-            pending_transactions = data.get("pending_transactions", {})
-            nguoi_dung_bi_cam = set(data.get("nguoi_dung_bi_cam", []))
-            dem_don = data.get("dem_don", 0)
-            
-            return True
-    except Exception as e:
-        print(f"❌ Lỗi tải dữ liệu: {e}")
-    return False
+    """Chuẩn bị sẵn sàng để đồng bộ từ Replit"""
+    global vi_tien, lich_su_nap
+    vi_tien = {}
+    lich_su_nap = {}
+    print("🔄 Bot sẵn sàng đồng bộ từ Replit")
     
 # ===== ĐẶT MÚI GIỜ VIỆT NAM =====
 os.environ['TZ'] = 'Asia/Ho_Chi_Minh'
