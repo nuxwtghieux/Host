@@ -413,7 +413,56 @@ async def gui_log_giao_dich(bot, user_id, so_du_moi, so_tien_bien_dong, ly_do=""
         print(f"✅ Đã gửi log giao dịch cho user {user_id} vào kênh log")
     except Exception as e:
         print(f"❌ Lỗi gửi log giao dịch: {e}")
-        
+
+
+# ============================================================
+# PHẦN 6: HÀM KHÔI PHỤC SỐ DƯ TỪ KÊNH LOG
+# ============================================================
+async def khoi_phuc_so_du_tu_log(bot):
+    """Quét kênh log, lấy tin nhắn mới nhất của từng user để khôi phục số dư"""
+    global vi_tien, lich_su_nap
+    vi_tien = {}
+    lich_su_nap = {}
+    print("🔄 Đang khôi phục số dư từ kênh log...")
+
+    kenh_log = bot.get_channel(ID_KENH_LOG_GIAO_DICH)
+    if not kenh_log:
+        print("❌ Không tìm thấy kênh log, bỏ qua khôi phục.")
+        return
+
+    try:
+        # Lấy tối đa 200 tin nhắn gần nhất (để đảm bảo bắt kịp)
+        async for msg in kenh_log.history(limit=200):
+            if not msg.author.bot:
+                continue
+            if not msg.embeds:
+                continue
+
+            embed = msg.embeds[0]
+            if embed.title and "📊 LOG BIẾN ĐỘNG SỐ DƯ" in embed.title:
+                # Parse User ID từ dòng "ID: ..."
+                user_id = None
+                for line in embed.description.split("\n"):
+                    if "ID:" in line:
+                        match = re.search(r'`(\d+)`', line)
+                        if match:
+                            user_id = int(match.group(1))
+                if not user_id:
+                    continue
+
+                # Parse Số dư mới nhất từ dòng "Ví Tiền: ..."
+                so_du = 0
+                for line in embed.description.split("\n"):
+                    if "Ví Tiền:" in line:
+                        so_du = int(re.sub(r'[^\d]', '', line))
+                
+                # Ghi đè số dư mới nhất của user (vì log được sắp xếp từ mới đến cũ)
+                vi_tien[user_id] = so_du
+
+        print(f"✅ Đã khôi phục số dư cho {len(vi_tien)} users từ kênh log!")
+    except Exception as e:
+        print(f"❌ Lỗi khi quét kênh log: {e}")
+
 # ============================================================
 # PHẦN 7: MODALS
 # ============================================================
@@ -1791,10 +1840,10 @@ async def tru_tien(
         await interaction.response.send_message(embed=embed_error, ephemeral=True)
 
 
-@discord.app_commands.command(name="congtien", description="💰 Cộng tiền vào ví user (Admin)")
+@discord.app_commands.command(name="congtien", description="💰 Cộng tiền vào ví user (Admin - Cho phép nợ âm)")
 @app_commands.describe(
     user="Chọn user cần cộng tiền",
-    so_tien="Số tiền cần cộng (VND)",
+    so_tien="Số tiền cần cộng (VND, có thể nhập số âm để trừ nợ)",
     ly_do="Lý do cộng tiền (tùy chọn)"
 )
 async def cong_tien(
@@ -1812,13 +1861,14 @@ async def cong_tien(
             )
             return await interaction.response.send_message(embed=embed_error, ephemeral=True)
         
-        if so_tien <= 0:
-            embed_error = discord.Embed(
-                title="❌ LỖI",
-                description="Số tiền phải lớn hơn 0!",
-                color=0xff0000
-            )
-            return await interaction.response.send_message(embed=embed_error, ephemeral=True)
+        # ĐÃ BỎ DÒNG KIỂM TRA SỐ TIỀN ÂM (cho phép nợ)
+        # if so_tien <= 0:
+        #     embed_error = discord.Embed(
+        #         title="❌ LỖI",
+        #         description="Số tiền phải lớn hơn 0!",
+        #         color=0xff0000
+        #     )
+        #     return await interaction.response.send_message(embed=embed_error, ephemeral=True)
         
         user_id = user.id
         so_du_hien_tai = vi_tien.get(user_id, 0)
@@ -1828,7 +1878,7 @@ async def cong_tien(
         luu_du_lieu()
 
         # === GỬI LOG VÀO KÊNH ===
-        await gui_log_giao_dich(bot, user_id, so_du_moi, so_tien, ly_do if ly_do else "Admin cộng")
+        await gui_log_giao_dich(bot, user_id, so_du_moi, so_tien, ly_do if ly_do else "Admin cộng (âm trừ nợ)")
         
         if user_id not in lich_su_nap:
             lich_su_nap[user_id] = []
@@ -1945,6 +1995,10 @@ class Bot(discord.Client):
     async def on_ready(self):
         global cac_map_da_gui
         try:
+            # === KHÔI PHỤC SỐ DƯ TỪ LOG ===
+            await khoi_phuc_so_du_tu_log(self)
+            # =================================
+            
             nap_emoji_tu_may_chu(self)
             await phuc_hoi_event_tu_tin_nhan(self)
             if event_active and msg_event:
