@@ -2436,57 +2436,44 @@ class Bot(discord.Client):
 bot = Bot()
 
 # ============================================================
-# ========== LỆNH PREFIX "!" & NÂNG CẤP /SODU ==============
+# ========== LỆNH PREFIX "!" ==============
 # ============================================================
 
-# 2. Các lệnh Prefix "!" (Text Commands)
 @bot.event
 async def on_message(message):
-    # Không cho bot tự reply tin nhắn của chính nó
     if message.author.bot:
         return
 
-    # Chỉ xử lý lệnh nếu tin nhắn bắt đầu bằng "!"
     if not message.content.startswith('!'):
         return
 
-    # Chia nhỏ câu lệnh
     args = message.content.split()
     cmd = args[0].lower()
 
-    # === KIỂM TRA QUYỀN ADMIN/MOD CHO CÁC LỆNH ! ===
-    # Chỉ lấy member từ message (vì message không phải Interaction)
     member = message.author
     is_admin = member.guild_permissions.administrator
     is_admin_or_mod = is_admin or any(r.id in [ID_QUAN_TRI, ID_DIEU_HANH] for r in member.roles)
 
-    # Dùng message.mentions để lấy user được tag
     target = message.mentions[0] if message.mentions else None
 
-    # === LỆNH !AV (Lấy avatar) ===
+    # === !AV ===
     if cmd == '!av':
         if not is_admin_or_mod:
-            return await message.reply("❌ Chỉ Admin/Mod mới dùng lệnh này!")
-        
+            return await message.reply("❌ Bạn đâu phải là Admin hay là Mod đâu=)).")
         if len(args) < 2 or target is None:
-            return await message.reply("❌ Sai cú pháp! Hãy tag đúng user (VD: !av @user)")
+            return await message.reply("❌ Admin/Mod dùng sai lệnh rùi kìa (!av @thanhvien)")
         
-        embed = discord.Embed(
-            title=f"🖼️ Avatar của {target.display_name}",
-            color=0x3498db
-        )
+        embed = discord.Embed(color=0x3498db)
         embed.set_image(url=target.display_avatar.url)
         await message.reply(embed=embed)
 
-    # === LỆNH !LOCK (Cấm chat tất cả kênh) ===
+    # === !LOCK ===
     elif cmd == '!lock':
-        if not is_admin:
-            return await message.reply("❌ Chỉ Admin mới dùng lệnh này!")
-        
+        if not is_admin_or_mod:
+            return await message.reply("❌ Bạn đâu phải là Admin hay là Mod đâu=)).")
         if len(args) < 2 or target is None:
-            return await message.reply("❌ Sai cú pháp! Hãy tag đúng user (VD: !lock @user)")
+            return await message.reply("❌ Admin/Mod dùng sai lệnh rùi kìa (!lock @thanhvien)")
         
-        # Duyệt qua tất cả kênh text, cấm quyền gửi tin nhắn cho user đó
         count = 0
         for channel in message.guild.text_channels:
             try:
@@ -2495,23 +2482,51 @@ async def on_message(message):
             except:
                 pass
         
-        await message.reply(f"🔒 Đã cấm **{target.mention}** chat ở **{count}** kênh text!")
+        await message.reply(f"🔒 Đã cấm chat **{target.mention}** ở tất cả kênh.")
 
-    # === LỆNH !BANKEH (Cấm chat 1 kênh cụ thể) ===
+    # === !UNLOCK ===
+    elif cmd == '!unlock':
+        if not is_admin_or_mod:
+            return await message.reply("❌ Bạn đâu phải là Admin hay là Mod đâu=)).")
+        if len(args) < 2 or target is None:
+            return await message.reply("❌ Admin/Mod dùng sai lệnh rùi kìa (!unlock @thanhvien)")
+        
+        count = 0
+        for channel in message.guild.text_channels:
+            try:
+                await channel.set_permissions(target, send_messages=None)
+                count += 1
+            except:
+                pass
+        
+        await message.reply(f"🔓 Đã mở chat cho **{target.mention}** ở tất cả kênh.")
+
+    # === !BANKEH ===
     elif cmd == '!bankenh':
         if not is_admin_or_mod:
-            return await message.reply("❌ Chỉ Admin/Mod mới dùng lệnh này!")
-        
+            return await message.reply("❌ Bạn đâu phải là Admin hay là Mod đâu=)).")
         if len(args) < 2 or target is None:
-            return await message.reply("❌ Sai cú pháp! Hãy tag đúng user (VD: !bankenh @user)")
+            return await message.reply("❌ Admin/Mod dùng sai lệnh rùi kìa (!bankenh @thanhvien)")
         
-        # Cấm user ngay tại kênh đang đứng
         try:
             await message.channel.set_permissions(target, send_messages=False)
-            await message.reply(f"🔇 Đã cấm **{target.mention}** nhắn tin ở kênh này!")
+            await message.reply(f"🔇 Đã cấm chat **{target.mention}** ở kênh này!")
         except:
-            await message.reply(f"❌ Không thể cấm {target.mention} ở kênh này (có thể đã cấm rồi hoặc quyền bot không đủ).")
+            await message.reply(f"❌ **{target.mention}** bị cấm chat trước đó rùii.")
 
+    # === !UNBANKEH ===
+    elif cmd == '!unbankenh':
+        if not is_admin_or_mod:
+            return await message.reply("❌ Bạn đâu phải là Admin hay là Mod đâu=)).")
+        if len(args) < 2 or target is None:
+            return await message.reply("❌ Admin/Mod dùng sai lệnh rùi kìa (!unbankenh @thanhvien)")
+        
+        try:
+            await message.channel.set_permissions(target, send_messages=None)
+            await message.reply(f"🔓 Đã mở lại chat cho **{target.mention}** tại kênh này!")
+        except:
+            await message.reply(f"❌ Không thể mở chst cho **{target.mention}** tại kênh này.")
+            
 if __name__ == '__main__':
     luong = threading.Thread(target=chay_may_chu_web)
     luong.start()
