@@ -19,7 +19,6 @@ import io
 import base64
 import threading
 import aiohttp
-import requests
 from datetime import datetime, timezone, timedelta
 from flask import Flask, request, jsonify
 
@@ -38,16 +37,10 @@ def luu_du_lieu():
                 "status": "success"
             }
             requests.post(REPLIT_NAP_API, json=data, timeout=5)
+        print("✅ Đã đồng bộ dữ liệu lên Replit")
     except Exception as e:
         print(f"❌ Lỗi đồng bộ lên Replit: {e}")
 
-def tai_du_lieu():
-    """Chuẩn bị sẵn sàng để đồng bộ từ Replit"""
-    global vi_tien, lich_su_nap
-    vi_tien = {}
-    lich_su_nap = {}
-    print("🔄 Bot sẵn sàng đồng bộ từ Replit")
-    
 # ===== ĐẶT MÚI GIỜ VIỆT NAM =====
 os.environ['TZ'] = 'Asia/Ho_Chi_Minh'
 try:
@@ -74,60 +67,6 @@ def trang_chu():
 
 def chay_may_chu_web():
     ung_dung.run(host='0.0.0.0', port=8080)
-
-# ================== API CỘNG/TRỪ TỪ TERMUX ==================
-@ung_dung.route('/cong_tien', methods=['POST'])
-def api_cong_tien():
-    try:
-        data = request.json
-        user_id = int(data.get('user_id'))
-        so_tien = int(data.get('so_tien'))
-        ly_do = data.get('ly_do', 'Admin cộng thủ công qua API')
-
-        if user_id not in vi_tien:
-            vi_tien[user_id] = 0
-        vi_tien[user_id] += so_tien
-
-        if user_id not in lich_su_nap:
-            lich_su_nap[user_id] = []
-        lich_su_nap[user_id].append({
-            'time': datetime.now().strftime('%Y-%m-%d %H:%M:%S'),
-            'amount': so_tien,
-            'content': f"CỘNG TIỀN - {ly_do}",
-            'admin': 0
-        })
-        cap_nhat_webhook(user_id, vi_tien[user_id], f"API_CONG_{int(time.time())}", "success")
-        return jsonify({"status": "success", "message": f"Đã cộng {so_tien:,} VND"}), 200
-    except Exception as e:
-        return jsonify({"status": "error", "message": str(e)}), 400
-
-@ung_dung.route('/tru_tien', methods=['POST'])
-def api_tru_tien():
-    try:
-        data = request.json
-        user_id = int(data.get('user_id'))
-        so_tien = int(data.get('so_tien'))
-        ly_do = data.get('ly_do', 'Admin trừ thủ công qua API')
-
-        if user_id not in vi_tien:
-            vi_tien[user_id] = 0
-        if vi_tien[user_id] < so_tien:
-            return jsonify({"status": "error", "message": "Số dư không đủ để trừ!"}), 400
-            
-        vi_tien[user_id] -= so_tien
-        
-        if user_id not in lich_su_nap:
-            lich_su_nap[user_id] = []
-        lich_su_nap[user_id].append({
-            'time': datetime.now().strftime('%Y-%m-%d %H:%M:%S'),
-            'amount': -so_tien,
-            'content': f"TRỪ TIỀN - {ly_do}",
-            'admin': 0 
-        })
-        cap_nhat_webhook(user_id, vi_tien[user_id], f"API_TRU_{int(time.time())}", "success")
-        return jsonify({"status": "success", "message": f"Đã trừ {so_tien:,} VND"}), 200
-    except Exception as e:
-        return jsonify({"status": "error", "message": str(e)}), 400
 
 # ============================================================
 # PHẦN 2: CẤU HÌNH
@@ -188,9 +127,6 @@ MENH_GIA = [5000, 10000, 20000, 50000, 100000, 200000, 500000, 1000000]
 # ============================================================
 # PHẦN 3: BIẾN TOÀN CỤC
 # ============================================================
-
-DATA_FILE = "bot_data.json"
-
 dem_don = 0
 dang_quet = True
 id_tin_nhan_phan_ung = None
@@ -1957,7 +1893,6 @@ class Bot(discord.Client):
     async def on_ready(self):
         global cac_map_da_gui
         try:
-            tai_du_lieu()
             nap_emoji_tu_may_chu(self)
             await phuc_hoi_event_tu_tin_nhan(self)
             if event_active and msg_event:
