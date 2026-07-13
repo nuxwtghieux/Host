@@ -22,7 +22,6 @@ import aiohttp
 from datetime import datetime, timezone, timedelta
 from flask import Flask, request, jsonify
 
-DATA_FILE = "bot_data.json"
 
 def luu_du_lieu():
     """Lưu toàn bộ dữ liệu quan trọng ra file JSON để khi bot restart không mất tiền"""
@@ -203,6 +202,9 @@ MENH_GIA = [5000, 10000, 20000, 50000, 100000, 200000, 500000, 1000000]
 # ============================================================
 # PHẦN 3: BIẾN TOÀN CỤC
 # ============================================================
+
+DATA_FILE = "bot_data.json"
+
 dem_don = 0
 dang_quet = True
 id_tin_nhan_phan_ung = None
