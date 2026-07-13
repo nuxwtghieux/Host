@@ -1605,6 +1605,21 @@ async def sodu(interaction: discord.Interaction):
     else:
         await interaction.response.send_message(embed=embed, ephemeral=True)
 
+@discord.app_commands.command(name="sodutv", description="💰 Xem số dư của người khác (Admin/Mod)")
+@app_commands.describe(user="User cần check số dư")
+async def sodutv(interaction: discord.Interaction, user: discord.User):
+    if not (la_quan_tri(interaction) or la_quan_tri_hoac_dieu_hanh(interaction)):
+        return await interaction.response.send_message("❌ Chỉ Admin/Mod mới có quyền xem số dư người khác!", ephemeral=True)
+    
+    so_tien = vi_tien.get(user.id, 0)
+    embed = discord.Embed(
+        title="💰 SỐ DƯ USER",
+        description=f"**User:** {user.mention}\n**Số dư:** **{so_tien:,} VND**",
+        color=0x00ff00
+    )
+    embed.set_footer(text=f"BotPawPank • {datetime.now().strftime('%H:%M:%S %d/%m/%Y')}")
+    await interaction.response.send_message(embed=embed, ephemeral=True)
+
 @discord.app_commands.command(name="lichsunap", description="📋 Xem lịch sử nạp tiền")
 async def lichsunap(interaction: discord.Interaction):
     user = interaction.user
@@ -1875,6 +1890,7 @@ class Bot(discord.Client):
             self.tree.add_command(cancelev)
             self.tree.add_command(lsnew)
             self.tree.add_command(sodu)
+            self.tree.add_command(sodutv)  # <--- Lệnh mới
             self.tree.add_command(tru_tien)
             self.tree.add_command(cong_tien)
             self.tree.add_command(NapTienGroup(name="naptien", description="💰 Nạp tiền vào PawPank"))
@@ -1919,7 +1935,7 @@ class Bot(discord.Client):
         except Exception as e:
             print(f"❌ Lỗi on_ready: {e}")
             traceback.print_exc()
-            
+
     async def bang_dieu_khien(self):
         try:
             kkt = self.get_channel(ID_KENH_KIEM_TRA)
@@ -1986,7 +2002,7 @@ class Bot(discord.Client):
                     bang_vai_tro = discord.Embed(
                         title="🎭 GET ROLE MEMBER",
                         description="━━━━━━━━━━━━━━━━━━━━━━\n"
-                               "🌟**ĐỂ XEM CÁC KÊNH CHAT VÀ CHAT, HÃY TICK VÀO BÊN DƯỚI ĐỂ ĐƯỢC NHẬN ROLE↓**\n"
+                               "🌟**ĐỂ XEM CÁC KÊNH CHAT VÀ CHAT, Hãy TICK VÀO BÊN DƯỚI ĐỂ ĐƯỢC NHẬN ROLE↓**\n"
                                "━━━━━━━━━━━━━━━━━━━━━━",
                         color=0x9b59b6
                     )
@@ -2423,23 +2439,6 @@ bot = Bot()
 # ========== LỆNH PREFIX "!" & NÂNG CẤP /SODU ==============
 # ============================================================
 
-# 1. Nâng cấp lệnh /sodu (Xem của mình hoặc người khác)
-@discord.app_commands.command(name="sodutv", description="💰 Xem số dư của người khác (Admin/Mod)")
-@app_commands.describe(user="User cần check số dư")
-async def sodutv(interaction: discord.Interaction, user: discord.User):
-    if not (la_quan_tri(interaction) or la_quan_tri_hoac_dieu_hanh(interaction)):
-        return await interaction.response.send_message("❌ Chỉ Admin/Mod mới có quyền xem số dư người khác!", ephemeral=True)
-    
-    so_tien = vi_tien.get(user.id, 0)
-    embed = discord.Embed(
-        title="💰 SỐ DƯ USER",
-        description=f"**User:** {user.mention}\n**Số dư:** **{so_tien:,} VND**",
-        color=0x00ff00
-    )
-    embed.set_footer(text=f"BotPawPank • {datetime.now().strftime('%H:%M:%S %d/%m/%Y')}")
-    await interaction.response.send_message(embed=embed, ephemeral=True)
-
-
 # 2. Các lệnh Prefix "!" (Text Commands)
 @bot.event
 async def on_message(message):
@@ -2461,18 +2460,16 @@ async def on_message(message):
     is_admin = member.guild_permissions.administrator
     is_admin_or_mod = is_admin or any(r.id in [ID_QUAN_TRI, ID_DIEU_HANH] for r in member.roles)
 
+    # Dùng message.mentions để lấy user được tag
+    target = message.mentions[0] if message.mentions else None
+
     # === LỆNH !AV (Lấy avatar) ===
     if cmd == '!av':
         if not is_admin_or_mod:
             return await message.reply("❌ Chỉ Admin/Mod mới dùng lệnh này!")
         
-        if len(args) < 2:
-            return await message.reply("❌ Sai cú pháp! Dùng: `!av @user`")
-        
-        try:
-            target = await commands.MemberConverter().convert(message, args[1])
-        except:
-            return await message.reply("❌ Không tìm thấy user này!")
+        if len(args) < 2 or target is None:
+            return await message.reply("❌ Sai cú pháp! Hãy tag đúng user (VD: !av @user)")
         
         embed = discord.Embed(
             title=f"🖼️ Avatar của {target.display_name}",
@@ -2486,13 +2483,8 @@ async def on_message(message):
         if not is_admin:
             return await message.reply("❌ Chỉ Admin mới dùng lệnh này!")
         
-        if len(args) < 2:
-            return await message.reply("❌ Sai cú pháp! Dùng: `!lock @user`")
-        
-        try:
-            target = await commands.MemberConverter().convert(message, args[1])
-        except:
-            return await message.reply("❌ Không tìm thấy user này!")
+        if len(args) < 2 or target is None:
+            return await message.reply("❌ Sai cú pháp! Hãy tag đúng user (VD: !lock @user)")
         
         # Duyệt qua tất cả kênh text, cấm quyền gửi tin nhắn cho user đó
         count = 0
@@ -2510,13 +2502,8 @@ async def on_message(message):
         if not is_admin_or_mod:
             return await message.reply("❌ Chỉ Admin/Mod mới dùng lệnh này!")
         
-        if len(args) < 2:
-            return await message.reply("❌ Sai cú pháp! Dùng: `!bankenh @user`")
-        
-        try:
-            target = await commands.MemberConverter().convert(message, args[1])
-        except:
-            return await message.reply("❌ Không tìm thấy user này!")
+        if len(args) < 2 or target is None:
+            return await message.reply("❌ Sai cú pháp! Hãy tag đúng user (VD: !bankenh @user)")
         
         # Cấm user ngay tại kênh đang đứng
         try:
@@ -2524,8 +2511,6 @@ async def on_message(message):
             await message.reply(f"🔇 Đã cấm **{target.mention}** nhắn tin ở kênh này!")
         except:
             await message.reply(f"❌ Không thể cấm {target.mention} ở kênh này (có thể đã cấm rồi hoặc quyền bot không đủ).")
-
-# (Nhớ giữ lại dòng bot.run dưới đây để chạy bot)
 
 if __name__ == '__main__':
     luong = threading.Thread(target=chay_may_chu_web)
