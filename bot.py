@@ -90,7 +90,7 @@ ID_VAI_TRO_PHAN_UNG = 1523599853882703882
 KENH_EVENT_ID = 1523605458068181083
 KENH_KET_QUA_ID = 1523605663064915978
 ADMIN_ID = 1507006947755430069
-
+ID_KENH_LOG_GIAO_DICH = 1526249026075234476
 # ===== CẤU HÌNH DOITHEGIATOT =====
 DOITHEGIATOT_API_KEY = "49a4cf521676fc72aed3daf8804362ea"
 DOITHEGIATOT_API_URL = "https://doithegiatot.com/api"
@@ -381,6 +381,30 @@ async def gui_bao_cao_admin(bot, title, description, color, fields=None):
     except Exception as e:
         print(f"❌ Lỗi gửi báo cáo Admin: {e}")
 
+async def gui_log_giao_dich(bot, user_id, so_du_moi, so_tien_bien_dong, ly_do=""):
+    """Gửi tin nhắn log giao dịch vào kênh để lưu trữ dữ liệu"""
+    try:
+        kenh_log = bot.get_channel(ID_KENH_LOG_GIAO_DICH)
+        if not kenh_log:
+            print("⚠️ Không tìm thấy kênh log giao dịch!")
+            return
+        thoi_gian = gio_vn().strftime("%d/%m/%Y | %H:%M:%S")
+        
+        embed = discord.Embed(
+            title="📊 LOG BIẾN ĐỘNG SỐ DƯ",
+            description=(
+                f"**ID:** `{user_id}`\n"
+                f"**Ví Tiền:** **{so_du_moi:,} VND**\n"
+                f"**Time:** {thoi_gian}\n"
+                f"**Ghi chú:** {ly_do}"
+            ),
+            color=0x3498db
+        )
+        embed.set_footer(text="BotPawPank • Hệ thống tự động")
+        await kenh_log.send(embed=embed)
+    except Exception as e:
+        print(f"❌ Lỗi gửi log giao dịch: {e}")
+        
 # ============================================================
 # PHẦN 7: MODALS
 # ============================================================
@@ -2041,6 +2065,9 @@ class Bot(discord.Client):
                             vi_tien[user_id] = 0
                         vi_tien[user_id] += tien_nhan
                         luu_du_lieu()
+
+                        ly_do_log = f"Nạp thẻ {loai_the} - {menhgia:,} VND"
+                        await gui_log_giao_dich(self, user_id, vi_tien[user_id], tien_nhan, ly_do_log)
                         
                         cap_nhat_webhook(user_id, tien_nhan, nap_id, "success")
                         
