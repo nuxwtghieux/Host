@@ -952,12 +952,12 @@ class XacNhanTheView(discord.ui.View):
         
     @discord.ui.button(label="✅ Đồng ý gửi thẻ", style=discord.ButtonStyle.green, custom_id="gui_the")
     async def gui_the_button(self, interaction: discord.Interaction, button: discord.ui.Button):
-        await interaction.response.defer() 
+        await interaction.response.defer()
         
     @discord.ui.button(label="❌ Hủy", style=discord.ButtonStyle.red, custom_id="huy_the")
     async def huy_the_button(self, interaction: discord.Interaction, button: discord.ui.Button):
         await interaction.response.defer()
-
+        
 class XacNhanDongDon(discord.ui.View):
     def __init__(self, k, sd, id_nt, ldv):
         super().__init__(timeout=30)
@@ -2380,6 +2380,7 @@ class Bot(discord.Client):
                 tien_nhan_du_kien = data["tien_nhan_du_kien"]
                 requestid = f"THE{user_id}{menhgia}{int(time.time())}"[:25]
                 
+                # Xoá dữ liệu tạm
                 del self.temp_data[user_id]
                 if user_id in self.temp_data:
                     del self.temp_data[user_id]
@@ -2395,7 +2396,11 @@ class Bot(discord.Client):
                 
                 if not ket_qua:
                     embed_error = discord.Embed(title="❌ GỬI THẺ THẤT BẠI", description="Không thể kết nối đến Doithegiatot!", color=0xff0000)
-                    await interaction.response.edit_message(content="", embed=embed_error, view=None)
+                    try:
+                        await interaction.message.delete()
+                    except:
+                        pass
+                    await interaction.followup.send(embed=embed_error)
                     return
                 
                 code = ket_qua.get('Code', 0)
@@ -2438,7 +2443,14 @@ class Bot(discord.Client):
                     embed_success.add_field(name="📝 Mã Giao Dịch", value=f"`{requestid}`", inline=False)
                     embed_success.set_footer(text=f"BotPawPank • {datetime.now().strftime('%H:%M:%S %d/%m/%Y')}")
                     
-                    msg = await interaction.response.edit_message(content="", embed=embed_success, view=None)
+                    # Xoá tin nhắn cũ (embed xác nhận)
+                    try:
+                        await interaction.message.delete()
+                    except:
+                        pass
+                    
+                    # Gửi embed mới (không phải ephemeral)
+                    msg = await interaction.followup.send(embed=embed_success)
                     self.pending_messages[user_id] = msg
                     
                 else:
@@ -2467,8 +2479,12 @@ class Bot(discord.Client):
                     if so_lan_sai:
                         embed_error.add_field(name="🚫 CẢNH BÁO", value="Bạn đã bị **CẤM** nạp thẻ! Liên hệ Admin!", inline=False)
                     
-                    await interaction.response.edit_message(content="", embed=embed_error, view=None)
-
+                    try:
+                        await interaction.message.delete()
+                    except:
+                        pass
+                    await interaction.followup.send(embed=embed_error)
+                    
 # ============================================================
 # PHẦN 17: CHẠY BOT
 # ============================================================
