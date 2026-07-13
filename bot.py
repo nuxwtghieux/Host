@@ -65,7 +65,7 @@ id_vai_tro_phan_ung = 1523599853882703882
 kenh_event_id = 1523605458068181083
 kenh_ket_qua_id = 1523605663064915978
 admin_id = 1507006947755430069
-id_kenh_log_giao_dich = 1526249026075234476
+id_kenh_log_giao_dich = 1526298537590001904
 
 doithegiatot_api_key = "49a4cf521676fc72aed3daf8804362ea"
 doithegiatot_api_url = "https://doithegiatot.com/api"
