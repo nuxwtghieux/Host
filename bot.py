@@ -91,6 +91,7 @@ KENH_EVENT_ID = 1523605458068181083
 KENH_KET_QUA_ID = 1523605663064915978
 ADMIN_ID = 1507006947755430069
 ID_KENH_LOG_GIAO_DICH = 1526249026075234476
+
 # ===== CẤU HÌNH DOITHEGIATOT =====
 DOITHEGIATOT_API_KEY = "49a4cf521676fc72aed3daf8804362ea"
 DOITHEGIATOT_API_URL = "https://doithegiatot.com/api"
@@ -388,6 +389,13 @@ async def gui_log_giao_dich(bot, user_id, so_du_moi, so_tien_bien_dong, ly_do=""
         if not kenh_log:
             print("⚠️ Không tìm thấy kênh log giao dịch!")
             return
+        
+        # Check quyền gửi tin nhắn
+        me = kenh_log.guild.me
+        if not kenh_log.permissions_for(me).send_messages:
+            print("❌ Bot không có quyền gửi tin nhắn vào kênh log!")
+            return
+
         thoi_gian = gio_vn().strftime("%d/%m/%Y | %H:%M:%S")
         
         embed = discord.Embed(
@@ -402,6 +410,7 @@ async def gui_log_giao_dich(bot, user_id, so_du_moi, so_tien_bien_dong, ly_do=""
         )
         embed.set_footer(text="BotPawPank • Hệ thống tự động")
         await kenh_log.send(embed=embed)
+        print(f"✅ Đã gửi log giao dịch cho user {user_id} vào kênh log")
     except Exception as e:
         print(f"❌ Lỗi gửi log giao dịch: {e}")
         
@@ -1817,6 +1826,9 @@ async def cong_tien(
         so_du_moi = so_du_hien_tai + so_tien
         vi_tien[user_id] = so_du_moi
         luu_du_lieu()
+
+        # === GỬI LOG VÀO KÊNH ===
+        await gui_log_giao_dich(bot, user_id, so_du_moi, so_tien, ly_do if ly_do else "Admin cộng")
         
         if user_id not in lich_su_nap:
             lich_su_nap[user_id] = []
