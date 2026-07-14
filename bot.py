@@ -2464,6 +2464,94 @@ bot = Bot()
 
 # phần 17
 if __name__ == '__main__':
+    @bot.event
+async def on_message(message):
+    if message.author.bot:
+        return
+
+    if not message.content.startswith('!'):
+        return
+
+    args = message.content.split()
+    cmd = args[0].lower()
+
+    member = message.author
+    is_admin = member.guild_permissions.administrator
+    is_admin_or_mod = is_admin or any(r.id in [id_quan_tri, id_dieu_hanh] for r in member.roles)
+
+    target = message.mentions[0] if message.mentions else None
+
+    # === !AV ===
+    if cmd == '!av':
+        if not is_admin_or_mod:
+            return await message.reply("❌ Bạn đâu phải là Admin hay là Mod đâu=)).")
+        if len(args) < 2 or target is None:
+            return await message.reply("❌ Admin/Mod dùng sai lệnh rùi kìa (!av @thanhvien)")
+        
+        embed = discord.Embed(color=0x3498db)
+        embed.set_image(url=target.display_avatar.url)
+        await message.reply(embed=embed)
+
+    # === !LOCK ===
+    elif cmd == '!lock':
+        if not is_admin_or_mod:
+            return await message.reply("❌ Bạn đâu phải là Admin hay là Mod đâu=)).")
+        if len(args) < 2 or target is None:
+            return await message.reply("❌ Admin/Mod dùng sai lệnh rùi kìa (!lock @thanhvien)")
+        
+        count = 0
+        for channel in message.guild.text_channels:
+            try:
+                await channel.set_permissions(target, send_messages=False)
+                count += 1
+            except:
+                pass
+        
+        await message.reply(f"🔒 Đã cấm chat **{target.mention}** ở tất cả kênh.")
+
+    # === !UNLOCK ===
+    elif cmd == '!unlock':
+        if not is_admin_or_mod:
+            return await message.reply("❌ Bạn đâu phải là Admin hay là Mod đâu=)).")
+        if len(args) < 2 or target is None:
+            return await message.reply("❌ Admin/Mod dùng sai lệnh rùi kìa (!unlock @thanhvien)")
+        
+        count = 0
+        for channel in message.guild.text_channels:
+            try:
+                await channel.set_permissions(target, send_messages=None)
+                count += 1
+            except:
+                pass
+        
+        await message.reply(f"🔓 Đã mở chat cho **{target.mention}** ở tất cả kênh.")
+
+    # === !BANKEH ===
+    elif cmd == '!bankenh':
+        if not is_admin_or_mod:
+            return await message.reply("❌ Bạn đâu phải là Admin hay là Mod đâu=)).")
+        if len(args) < 2 or target is None:
+            return await message.reply("❌ Admin/Mod dùng sai lệnh rùi kìa (!bankenh @thanhvien)")
+        
+        try:
+            await message.channel.set_permissions(target, send_messages=False)
+            await message.reply(f"🔇 Đã cấm chat **{target.mention}** ở kênh này!")
+        except:
+            await message.reply(f"❌ **{target.mention}** bị cấm chat trước đó rùii.")
+
+    # === !UNBANKEH ===
+    elif cmd == '!unbankenh':
+        if not is_admin_or_mod:
+            return await message.reply("❌ Bạn đâu phải là Admin hay là Mod đâu=)).")
+        if len(args) < 2 or target is None:
+            return await message.reply("❌ Admin/Mod dùng sai lệnh rùi kìa (!unbankenh @thanhvien)")
+        
+        try:
+            await message.channel.set_permissions(target, send_messages=None)
+            await message.reply(f"🔓 Đã mở lại chat cho **{target.mention}** tại kênh này!")
+        except:
+            await message.reply(f"❌ Không thể mở chst cho **{target.mention}** tại kênh này.")
+            
     luong = threading.Thread(target=chay_may_chu_web)
     luong.start()
     print("🌐 Web port 8080")
