@@ -2464,7 +2464,7 @@ bot = Bot()
 
 # phần 17
 if __name__ == '__main__':
-    @bot.event
+@bot.event
 async def on_message(message):
     if message.author.bot:
         return
